@@ -38,8 +38,10 @@ asserted again ("dead time").
 * The output assertion conditions are processed in the same way as input
 assertion conditions.
 
-## Limitations
-
 ## Notes
+
+Copies of this module can be daisy-chained to produce more complicated
+logical expressions (such as sum-of-products). This usually won't be
+necessary.
 
 _(This is the end of the file.)_
