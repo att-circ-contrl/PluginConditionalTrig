@@ -24,6 +24,9 @@ N milliseconds before its condition is asserted (to ignore spurious events).
 * Assertion may be delayed until N milliseconds after the input condition is
 met ("delay time").
 
+  * This may be a variable time between M and N milliseconds, uniformly
+distributed. This is used to deliberately introduce jitter if desired.
+
 * Asserted conditions may be held for N milliseconds, even if the input
 condition ceases to be present ("sustain time").
 
