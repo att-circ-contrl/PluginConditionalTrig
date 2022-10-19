@@ -1,4 +1,4 @@
-//include "TTLCondTrigEditor.h"
+#include "TTLCondTrigEditor.h"
 #include "TTLCondTrig.h"
 
 using namespace TTLConditionTrig;
@@ -24,7 +24,7 @@ TTLConditionalTrigger::TTLConditionalTrigger() : GenericProcessor("TTL Condition
 T_PRINT("Constructor called.");
 
     inputEnabled.clear();
-    inputEnabled.insertMultiple(0, false, TTLCONDTRIG_INPUTS);
+    inputEnabled.insertMultiple(0, false, TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS);
 
     // NOTE - Per Josh, we need to set the processor type here in addition to
     // reporting it from getLibInfo().
@@ -40,7 +40,6 @@ TTLConditionalTrigger::~TTLConditionalTrigger()
 
 
 // Editor accessor.
-#if 0
 AudioProcessorEditor* TTLConditionalTrigger::createEditor()
 {
 T_PRINT("Creating editor.");
@@ -49,7 +48,6 @@ T_PRINT("Creating editor.");
     editor = new TTLConditionalTriggerEditor(this);
     return editor;
 }
-#endif
 
 
 // Rebuild external configuration information.
@@ -110,9 +108,12 @@ T_PRINT("loadCustomParametersFromXml() called.");
 
 // Accessor for modifying state.
 // This is a wrapper for setParameter.
-void TTLConditionalTrigger::setParamByChan(int chanIdx, int paramIdx, long newValue)
+void TTLConditionalTrigger::setParamByChan(int outputIdx, int inputIdx, int paramIdx, long newValue)
 {
-  int packedIdx = chanIdx * TTLCONDTRIG_PARAM_STRIDE + paramIdx;
+  int packedIdx = paramIdx;
+  packedIdx += inputIdx * TTLCONDTRIG_STRIDE_INPUT;
+  packedIdx += outputIdx * TTLCONDTRIG_STRIDE_OUTPUT;
+
   setParameter(packedIdx, newValue);
 }
 

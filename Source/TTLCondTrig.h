@@ -5,6 +5,7 @@
 
 // Magic constants for data geometry.
 #define TTLCONDTRIG_INPUTS 4
+#define TTLCONDTRIG_OUTPUTS 4
 
 // Magic constants for parameter indices.
 // Making this an enum isn't any cleaner, since we aren't guaranteed sequential values.
@@ -16,8 +17,12 @@
 #define TTLCONDTRIG_PARAM_SUSTAIN 5
 #define TTLCONDTRIG_PARAM_DEADTIME 6
 #define TTLCONDTRIG_PARAM_DEGLITCH 7
+#define TTLCONDTRIG_PARAM_OUTSENSE 8
 // This should be equal to or greater than the number of per-channel parameters.
 #define TTLCONDTRIG_PARAM_STRIDE 10
+
+#define TTLCONDTRIG_STRIDE_INPUT TTLCONDTRIG_PARAM_STRIDE
+#define TTLCONDTRIG_STRIDE_OUTPUT (TTLCONDTRIG_INPUTS * TTLCONDTRIG_PARAM_STRIDE)
 
 // Class declarations.
 namespace TTLConditionTrig
@@ -30,8 +35,8 @@ namespace TTLConditionTrig
 		~TTLConditionalTrigger();
 
 		// We do have a custom editor.
-//		bool hasEditor() const { return true; }
-//		AudioProcessorEditor* createEditor() override;
+		bool hasEditor() const { return true; }
+		AudioProcessorEditor* createEditor() override;
 
 		// Rebuild external configuration information.
 		// We detect available inputs here.
@@ -55,7 +60,7 @@ namespace TTLConditionTrig
 		// We need to do this indirectly for thread safety.
 
 		// This is a wrapper for setParameter.
-		void setParamByChan(int chanIdx, int paramIdx, long newValue);
+		void setParamByChan(int outputIdx, int inputIdx, int paramIdx, long newValue);
 
 		// This propagates state to the display.
 		// It's called by process() and can also be called manually.
