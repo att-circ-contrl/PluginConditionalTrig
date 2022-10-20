@@ -56,7 +56,7 @@ void TTLConditionalTrigger::updateSettings()
 {
 T_PRINT("udpateSettings() called.");
 
-// FIXME - NYI.
+// FIXME - updateSettings() NYI.
 }
 
 
@@ -71,7 +71,7 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
 // TTL event handling.
 void TTLConditionalTrigger::handleEvent(const EventChannel *eventInfo, const MidiMessage& event, int samplePosition)
 {
-// FIXME - NYI.
+// FIXME - handleEvent() NYI.
 }
 
 
@@ -83,7 +83,7 @@ void TTLConditionalTrigger::setParameter(int parameterIndex, float newValue)
 
 T_PRINT( "setParameter() called setting " << parameterIndex << " to: " << integerValue );
 
-// FIXME - NYI.
+// FIXME - setParameter() NYI.
 }
 
 
@@ -92,7 +92,7 @@ void TTLConditionalTrigger::saveCustomParametersToXml(XmlElement* parentElement)
 {
 T_PRINT("saveCustomParametersToXml() called.");
 
-// FIXME - NYI.
+// FIXME - saveCustomParametersToXml() NYI.
 }
 
 
@@ -102,7 +102,7 @@ void TTLConditionalTrigger::loadCustomParametersFromXml()
 {
 T_PRINT("loadCustomParametersFromXml() called.");
 
-// FIXME - NYI.
+// FIXME - loadCustomParametersFromXml() NYI.
 }
 
 
@@ -124,7 +124,7 @@ void TTLConditionalTrigger::pushStateToDisplay()
 {
     // NOTE - The editor is already stored as the GenericProcessor class variable "editor".
 
-// FIXME - NYI.
+// FIXME - pushStateToDisplay() NYI.
 }
 
 

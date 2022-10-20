@@ -82,7 +82,7 @@ addAndMakeVisible(dummyButton);
 //dummyButton->setCentreRelative(0.5,0.5);
 dummyButton->setBounds(30, 30, 60, 60);
 
-// FIXME - NYI.
+// FIXME - Editor constructor NYI.
 
     // NOTE - The redraw timer should be running even if we're not acquiring data.
     startTimer(TTLCONDTRIG_DISPLAY_REFRESH_MS);
@@ -110,6 +110,7 @@ void TTLConditionalTriggerEditor::timerCallback()
     if (!acquisitionIsActive)
         parent->pushStateToDisplay();
 
+    // Always redraw.
     doStateUpdateRedraw();
 }
 
@@ -118,14 +119,14 @@ void TTLConditionalTriggerEditor::timerCallback()
 // FIXME - Placeholder. This needs to take arguments.
 void TTLConditionalTriggerEditor::pushStateToEditor()
 {
-// FIXME - NYI.
+// FIXME - pushStateToEditor() NYI.
 }
 
 
 // Redraw function. Should be called from the timer, not the plugin.
 void TTLConditionalTriggerEditor::doStateUpdateRedraw()
 {
-// FIXME - NYI.
+// FIXME - doStateUpdateRedraw() NYI.
 }
 
 
