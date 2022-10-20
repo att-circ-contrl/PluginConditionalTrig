@@ -15,6 +15,42 @@ using namespace TTLConditionTrig;
 
 
 //
+// Configuration for processing conditions on one signal.
+
+
+// Constructor.
+ConditionConfig::ConditionConfig()
+{
+    // Set sane defaults.
+
+    isEnabled = false;
+
+    delay_min_samps = 0;
+    delay_max_samps = 0;
+
+    sustain_samps = 10;
+
+    dead_time_samps = 100;
+
+    deglitch_samps = 0;
+
+    output_active_high = true;
+
+    chanIdx = 0;
+    bitIdx = 0;
+}
+
+
+// Default destructor is fine.
+
+
+//
+// Condition processing for one TTL signal.
+
+// FIXME - ConditionProcessor NYI.
+
+
+//
 // TTL conditional trigger logic.
 
 
