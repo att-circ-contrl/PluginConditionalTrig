@@ -17,6 +17,7 @@ namespace TTLConditionTrig
 		void clear();
 		void enqueue(datatype_t newVal);
 		datatype_t dequeue();
+		datatype_t snoop();
 		size_t count();
 
 	protected:
@@ -69,17 +70,31 @@ void TTLConditionTrig::CircBuf<datatype_t,bufsize>::enqueue(datatype_t newVal)
 template <class datatype_t,size_t bufsize>
 datatype_t TTLConditionTrig::CircBuf<datatype_t,bufsize>::dequeue()
 {
-	// Pick a safe default value.
-	datatype_t returnVal = (datatype_t) 0;
+	// Do a non-destructive read.
+	datatype_t returnVal = snoop();
 
-	// Only fetch data if there's data to fetch.
+	// If we had data to fetch, update the read pointer.
 	if (dataCount > 0)
 	{
-		returnVal = dataBuffer[readPtr];
 		// The compiler will optimize this if bufsize is a power of two.
 		readPtr = (readPtr + 1) % bufsize;
 		dataCount--;
 	}
+
+	return returnVal;
+}
+
+
+template <class datatype_t,size_t bufsize>
+datatype_t TTLConditionTrig::CircBuf<datatype_t,bufsize>::snoop()
+{
+	// Pick a safe default value.
+	datatype_t returnVal = (datatype_t) 0;
+
+	// Only fetch data if there's data to fetch.
+	// Don't change the read pointer - this is a non-destructive read.
+	if (dataCount > 0)
+		returnVal = dataBuffer[readPtr];
 
 	return returnVal;
 }

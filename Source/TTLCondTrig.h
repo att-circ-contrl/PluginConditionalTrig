@@ -40,6 +40,7 @@ namespace TTLConditionTrig
 	{
 	public:
 		// Configuration parameters. External editing is fine.
+		std::string label;
 		bool isEnabled;
 		int64 delay_min_samps, delay_max_samps;
 		int64 sustain_samps;
@@ -53,6 +54,9 @@ namespace TTLConditionTrig
 		// Constructor.
 		ConditionConfig();
 		// Default destructor is fine.
+
+		// This sets a known-sane configuration state.
+		void clear();
 	};
 
 
@@ -67,7 +71,9 @@ namespace TTLConditionTrig
 		// Accessors.
 
 		void setConfig(ConditionConfig &newConfig);
-		void resetState(int64 resetTime, bool resetInput);
+		ConditionConfig getConfig();
+		void resetState();
+		void resetInput(int64 resetTime, bool resetInput);
 
 		void handleInput(int64 inputTime, bool inputLevel);
 
@@ -126,7 +132,10 @@ namespace TTLConditionTrig
 		void pushStateToDisplay();
 
 	protected:
-		Array<bool> inputEnabled;
+		// There shouldn't be anything dynamically allocated in here, and thread safety should already by guaranteed by setParameter().
+		// So, C++ arrays rather than Array/OwnedArray should be fine.
+		ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
 
 	private:
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTrigger);
