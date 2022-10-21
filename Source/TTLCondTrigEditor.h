@@ -2,13 +2,12 @@
 #define TTLCONDTRIGEDITOR_H_DEFINED
 
 #include <EditorHeaders.h>
+#include "TTLCondTrigIcons.h"
 
 // Magic constants for GUI geometry.
 
 // Magic constants for GUI colours.
-#define WRENCH_FOREGROUND juce::Colours::black
-#define WRENCH_BACKGROUND juce::Colours::white
-#define WRENCH_TRANSPARENT juce::Colours::transparentWhite
+#define COLOUR_TRANSPARENT juce::Colours::transparentWhite
 
 // Magic constants for display refresh.
 #define TTLCONDTRIG_DISPLAY_REFRESH_MS 20
@@ -16,16 +15,6 @@
 namespace TTLConditionTrig
 {
 	class TTLConditionalTrigger;
-
-
-	// Settings button image.
-	class WrenchImage : public Image
-	{
-	public:
-		// Constructor.
-		WrenchImage();
-		// Inherited destructor is fine.
-	};
 
 
 	// GUI tray for conditional trigger display and configuration.

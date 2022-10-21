@@ -19,50 +19,6 @@ using namespace TTLConditionTrig;
 
 
 //
-// Settings button image.
-
-
-// Private macros and constants for the settings button image.
-
-#define WRENCH_WIDTH 16
-#define WRENCH_HEIGHT 16
-
-const char wrenchpicture[WRENCH_WIDTH*WRENCH_HEIGHT] =
-{ ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ','#','#','#','#',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ','#','#','#','#',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ','#','#','#',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ','#','#','#','#',' ',' ',' ','#',' ',
-  ' ',' ',' ',' ',' ',' ',' ','#','#','#','#','#',' ','#','#',' ',
-  ' ',' ',' ',' ',' ',' ','#','#','#','#','#','#','#','#','#',' ',
-  ' ',' ',' ',' ',' ','#','#','#','#','#','#','#','#','#','#',' ',
-  ' ',' ',' ',' ','#','#','#','#','#','#','#','#','#','#',' ',' ',
-  ' ',' ',' ','#','#','#','#','#','#','#',' ',' ',' ',' ',' ',' ',
-  ' ',' ','#','#','#','#','#','#','#',' ',' ',' ',' ',' ',' ',' ',
-  ' ','#','#','#','#','#','#','#',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ','#','#','#','#','#','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ','#','#','#','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ','#','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ' };
-
-
-// Constructor.
-
-WrenchImage::WrenchImage() : Image(Image::PixelFormat::ARGB, WRENCH_WIDTH, WRENCH_HEIGHT, true)
-{
-    char thischar;
-
-    for (int hidx = 0; hidx < WRENCH_WIDTH; hidx++)
-        for (int vidx = 0; vidx < WRENCH_HEIGHT; vidx++)
-        {
-            thischar = wrenchpicture[vidx * WRENCH_WIDTH + hidx];
-            setPixelAt( hidx, vidx, (thischar == ' ' ? WRENCH_BACKGROUND : WRENCH_FOREGROUND) );
-        }
-}
-
-
-
-//
 // GUI tray for conditional trigger display and configuration.
 
 // Constructor.
@@ -76,7 +32,7 @@ T_PRINT("Editor constructor called.");
 
 // FIXME - Testing.
 dummyButton = new ImageButton("Foo");
-dummyButton->setImages(true, true, true, *settingImage, 1.0, WRENCH_TRANSPARENT, *settingImage, 1.0, WRENCH_TRANSPARENT, *settingImage, 0.5, WRENCH_TRANSPARENT);
+dummyButton->setImages(true, true, true, *settingImage, 1.0, COLOUR_TRANSPARENT, *settingImage, 1.0, COLOUR_TRANSPARENT, *settingImage, 0.5, COLOUR_TRANSPARENT);
 dummyButton->addListener(this);
 addAndMakeVisible(dummyButton);
 //dummyButton->setCentreRelative(0.5,0.5);
