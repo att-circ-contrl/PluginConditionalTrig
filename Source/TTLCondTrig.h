@@ -3,6 +3,10 @@
 
 #include <ProcessorHeaders.h>
 
+// NOTE - C++ compiles templated classes on-demand.
+// The header both declares and implements them. Extra copies get pruned at link-time.
+#include "TTLCondTrigTemplates.h"
+
 // Magic constants for data geometry.
 #define TTLCONDTRIG_INPUTS 4
 #define TTLCONDTRIG_OUTPUTS 4
@@ -49,23 +53,6 @@ namespace TTLConditionTrig
 		// Constructor.
 		ConditionConfig();
 		// Default destructor is fine.
-	};
-
-
-	// Circular buffer helper class.
-	// NOTE - This assumes static data! If you pass it pointers, do your own de-allocation afterwards!
-	template <class datatype_t,size_t bufsize> class CircBuf
-	{
-	public:
-		CircBuf();
-		void clear();
-		void enqueue(datatype_t newVal);
-		datatype_t dequeue();
-		size_t count();
-
-	protected:
-		datatype_t dataBuffer[bufsize];
-		size_t readPtr, writePtr, dataCount;
 	};
 
 
@@ -145,13 +132,6 @@ namespace TTLConditionTrig
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTrigger);
 	};
 }
-
-// Code inclusion.
-
-// C++ compiles templated classes on-demand. The source code has to be included so that the compiler can do this.
-// Only one copy of each variant will actually end up in the binary; extra copies get pruned at link-time.
-// There are other ways to handle this, but they're just as ugly as this way.
-#include "TTLCondTrigTemplates.h"
 
 #endif
 
