@@ -35,9 +35,12 @@ namespace TTLConditionTrig
 
 		// Accessors.
 		// NOTE - The plugin has to push data to us, rather than us pulling it.
+		// Most of the config state only gets updated when not running. Output enable is the exception.
 		// FIXME - Placeholder. This needs to take arguments.
-		void pushStateToEditor();
-		void doStateUpdateRedraw();
+		void pushConfigStateToEditor();
+		void pushRunningStateToEditor();
+		void doConfigStateRedraw();
+		void doRunningStateRedraw();
 
 	private:
 		TTLConditionalTrigger* parent;

@@ -62,27 +62,49 @@ void TTLConditionalTriggerEditor::timerCallback()
 {
     // Pull data if not running.
     // If we're running, let process() push it to avoid race conditions.
+
     // Check the "acquisitionIsActive" state variable from GenericEditor.
     if (!acquisitionIsActive)
+    {
         parent->pushStateToDisplay();
+        // Only fully redraw configuration state when we're not running.
+        doConfigStateRedraw();
+    }
 
-    // Always redraw.
-    doStateUpdateRedraw();
+    // Always redraw elements that are visible while running.
+    doRunningStateRedraw();
 }
 
 
-// Accessor to push plugin state to the editor.
+// Accessor to push plugin configuration state to the editor.
 // FIXME - Placeholder. This needs to take arguments.
-void TTLConditionalTriggerEditor::pushStateToEditor()
+void TTLConditionalTriggerEditor::pushConfigStateToEditor()
 {
-// FIXME - pushStateToEditor() NYI.
+// FIXME - pushConfigStateToEditor() NYI.
+}
+
+
+// Accessor to push monitoring state (and output enable) to the editor.
+// FIXME - Placeholder. This needs to take arguments.
+void TTLConditionalTriggerEditor::pushRunningStateToEditor()
+{
+// FIXME - pushRunningStateToEditor() NYI.
 }
 
 
 // Redraw function. Should be called from the timer, not the plugin.
-void TTLConditionalTriggerEditor::doStateUpdateRedraw()
+// This redraws all configuration-sensitive elements.
+void TTLConditionalTriggerEditor::doConfigStateRedraw()
 {
-// FIXME - doStateUpdateRedraw() NYI.
+// FIXME - doConfigStateRedraw() NYI.
+}
+
+
+// Redraw function. Should be called from the timer, not the plugin.
+// This only redraws elements that are visible/accessible while running.
+void TTLConditionalTriggerEditor::doRunningStateRedraw()
+{
+// FIXME - doRunningStateRedraw() NYI.
 }
 
 
