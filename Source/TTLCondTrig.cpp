@@ -290,7 +290,8 @@ void TTLConditionalTrigger::pushStateToDisplay()
     if (!isEnabled)
     {
         // We're not running. Propagate the config state.
-        // NOTE - This should never actually change anything, since we got our config from the UI. We're doing it in case of "can't happen" desynchronization.
+        // NOTE - This should rarely actually change anything, since we got our config from the UI.
+        // The exception is if we loaded configuration from XML or otherwise got it from somewhere other than the user clicking buttons.
         int inMatrixPtr = 0;
         for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
         {
@@ -306,6 +307,9 @@ void TTLConditionalTrigger::pushStateToDisplay()
     // Always propagate running state.
 
 // FIXME - pushStateToDisplay() running state NYI.
+// We need the most recent input and output state, and the enabled state.
+// We can pull input and enabled from the condition objects.
+// Output state needs to be saved by the event handler (unless we cache it in the objects).
 }
 
 

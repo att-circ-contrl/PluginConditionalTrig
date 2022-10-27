@@ -7,6 +7,24 @@ using namespace TTLConditionTrig;
 // Private magic constants for GUI geometry.
 
 
+// Private magic constants for colours.
+
+#define WRENCH_FOREGROUND juce::Colours::black
+#define WRENCH_BACKGROUND juce::Colours::white
+
+#define CONN_FOREGROUND juce::Colours::lightyellow
+#define CONN_BACKGROUND juce::Colours::transparentWhite
+#define DISCONN_FOREGROUND juce::Colours::black
+#define DISCONN_BACKGROUND juce::Colours::transparentWhite
+
+#define LAMP_BACKGROUND juce::Colours::transparentWhite
+#define LAMP_OUTLINE juce::Colours::black
+#define LAMP_ON_FILL juce::Colours::lightgreen
+#define LAMP_ON_HIGHLIGHT juce::Colours::white
+#define LAMP_OFF_FILL juce::Colours::darkgrey
+#define LAMP_OFF_HIGHLIGHT juce::Colours::grey
+
+
 // Diagnostic tattle macros.
 #define TRIGEDITTATTLE
 #ifdef TRIGEDITTATTLE
@@ -47,11 +65,26 @@ T_PRINT("Editor constructor called.");
 
     // Build the GUI.
 
-    settingsImage = new WrenchImage;
+    settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
+    connectImage = new ConnectedImage(CONN_BACKGROUND, CONN_FOREGROUND);
+    disconnectImage = new DisconnectedImage(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
+    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_ON_FILL, LAMP_ON_HIGHLIGHT);
+    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
 
 // FIXME - Testing.
 dummyButton = new ImageButton("Foo");
-dummyButton->setImages(true, true, true, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 0.5, COLOUR_TRANSPARENT);
+
+// Images are normal, hover-over, and pressed.
+// Tuples are image, image opacity, and overlay colour.
+// Settings button test.
+//dummyButton->setImages(true, true, true, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 0.5, COLOUR_TRANSPARENT);
+// Connection button test.
+//dummyButton->setImages(true, true, true, *disconnectImage, 1.0, COLOUR_TRANSPARENT, *disconnectImage, 1.0, COLOUR_TRANSPARENT, *connectImage, 1.0, COLOUR_TRANSPARENT);
+// Lamp image test.
+dummyButton->setImages(true, true, true, *lampOffImage, 1.0, COLOUR_TRANSPARENT, *lampOffImage, 1.0, COLOUR_TRANSPARENT, *lampOnImage, 1.0, COLOUR_TRANSPARENT);
+// Set this if we're testing a toggle button.
+dummyButton->setClickingTogglesState(true);
+
 dummyButton->addListener(this);
 addAndMakeVisible(dummyButton);
 //dummyButton->setCentreRelative(0.5,0.5);

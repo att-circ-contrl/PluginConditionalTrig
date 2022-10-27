@@ -52,6 +52,10 @@ namespace TTLConditionTrig
 		TTLConditionalTrigger* parent;
 
 		ScopedPointer<Image> settingsImage;
+		ScopedPointer<Image> connectImage;
+		ScopedPointer<Image> disconnectImage;
+		ScopedPointer<Image> lampOnImage;
+		ScopedPointer<Image> lampOffImage;
 
 		// We have our own local copies of configuration state.
 		ConditionConfig inputConfig[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
