@@ -40,7 +40,7 @@ namespace TTLConditionTrig
 
 		// NOTE - Pushing arguments by value rather than by reference to avoid multithreading issues.
 		void pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, std::string newLabel);
-		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, std::string newLabel);
+		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs, std::string newLabel);
 		// NOTE - Passing arrays by value involves shenanigans, but the caller's arrays should persist until this call returns, so we'll be okay.
 		void pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS]);
 
@@ -51,21 +51,30 @@ namespace TTLConditionTrig
 	protected:
 		TTLConditionalTrigger* parent;
 
-		ScopedPointer<Image> settingsImage;
-		ScopedPointer<Image> connectImage;
-		ScopedPointer<Image> disconnectImage;
-		ScopedPointer<Image> lampOnImage;
-		ScopedPointer<Image> lampOffImage;
-
 		// We have our own local copies of configuration state.
 		ConditionConfig inputConfig[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		ConditionConfig outputConfig[TTLCONDTRIG_OUTPUTS];
+		bool needAllInputs[TTLCONDTRIG_OUTPUTS];
 		std::string inputLabels[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		std::string outputLabels[TTLCONDTRIG_OUTPUTS];
 
 		// We also have a cached copy of the input and output.
 		bool inputLampState[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		bool outputLampState[TTLCONDTRIG_OUTPUTS];
+
+		// GUI state variables.
+		int outputSelectIdx; // Which output tab we've selected.
+		int inputSelectIdx; // Which input we're editing.
+		bool editingInput; // Are we adjusting input settings?
+		bool editingOutput; // Are we adjusting output settings?
+		bool wasRunningLastRedraw; // To check for enable/disable updates.
+
+		// GUI elements.
+		ScopedPointer<Image> settingsImage;
+		ScopedPointer<Image> connectImage;
+		ScopedPointer<Image> disconnectImage;
+		ScopedPointer<Image> lampOnImage;
+		ScopedPointer<Image> lampOffImage;
 
 // FIXME - Testing.
 ScopedPointer<ImageButton> dummyButton;

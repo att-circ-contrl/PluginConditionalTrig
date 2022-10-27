@@ -137,6 +137,9 @@ namespace TTLConditionTrig
 		ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
 
+		// This is the "need all"/"need any" switch for each output.
+		bool needAllInputs[TTLCONDTRIG_OUTPUTS];
+
 		// We're declared non-copyable, so internal dynamic allocation is fine for these.
 		std::string inputLabels[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		std::string outputLabels[TTLCONDTRIG_OUTPUTS];

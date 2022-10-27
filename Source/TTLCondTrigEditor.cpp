@@ -47,11 +47,13 @@ TTLConditionalTriggerEditor::TTLConditionalTriggerEditor(TTLConditionalTrigger* 
 T_PRINT("Editor constructor called.");
 
     // Force configuration to sane state.
+    // This gets overwritten as soon as we start polling.
 
     int inMatrixPtr = 0;
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputConfig[outIdx].clear();
+        needAllInputs[outIdx] = true;
         outputLabels[outIdx] = "unnamed";
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
@@ -63,6 +65,17 @@ T_PRINT("Editor constructor called.");
     }
 
 
+    // Initialize configuration for the GUI itself.
+
+    outputSelectIdx = 0;
+    inputSelectIdx = 0;
+    editingInput = false;
+    editingOutput = false;
+    // Cheat. We know that we'll be constructed before acquisition starts.
+    // The redraw will think that we just switched modes, and will update everything appropriately.
+    wasRunningLastRedraw = true;
+
+
     // Build the GUI.
 
     settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
@@ -71,7 +84,9 @@ T_PRINT("Editor constructor called.");
     lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_ON_FILL, LAMP_ON_HIGHLIGHT);
     lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
 
+
 // FIXME - Testing.
+#if 1
 dummyButton = new ImageButton("Foo");
 
 // Images are normal, hover-over, and pressed.
@@ -89,6 +104,8 @@ dummyButton->addListener(this);
 addAndMakeVisible(dummyButton);
 //dummyButton->setCentreRelative(0.5,0.5);
 dummyButton->setBounds(30, 30, 60, 60);
+#endif
+
 
 // FIXME - Editor constructor NYI.
 
@@ -142,11 +159,12 @@ void TTLConditionalTriggerEditor::pushInputConfigToEditor(int inMatrixIdx, Condi
 
 
 // Accessor to push output configuration state to the editor.
-void TTLConditionalTriggerEditor::pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, std::string newLabel)
+void TTLConditionalTriggerEditor::pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs, std::string newLabel)
 {
     if ( (outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS) )
     {
         outputConfig[outIdx] = newConfig;
+        needAllInputs[outIdx] = newNeedAllInputs;
         outputLabels[outIdx] = newLabel;
     }
 }

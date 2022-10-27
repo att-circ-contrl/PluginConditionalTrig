@@ -149,12 +149,17 @@ TTLConditionalTrigger::TTLConditionalTrigger() : GenericProcessor("TTL Condition
 {
 T_PRINT("Constructor called.");
 
+#define SCRATCHSTRINGLEN 16
+char scratchbuf[SCRATCHSTRINGLEN];
+
     // NOTE - Per Josh, we need to set the processor type here in addition to
     // reporting it from getLibInfo().
     setProcessorType(PluginProcessorType::PROCESSOR_TYPE_FILTER);
 
 
-    // These should already have been initialized by their constructors, but do it explicitly just to be safe.
+    // Condition configs should already have been initialized by their constructors, but do it explicitly just to be safe.
+    // Labels should be set to reasonable default values here.
+    // Ditto output and/or switches.
 
     ConditionConfig dummyConfig;
     dummyConfig.clear();
@@ -166,7 +171,11 @@ T_PRINT("Constructor called.");
         outputConditions[outIdx].resetInput(-1, false);
         outputConditions[outIdx].resetState();
 
-        outputLabels[outIdx] = "unnamed";
+        needAllInputs[outIdx] = true;
+
+        snprintf(scratchbuf, SCRATCHSTRINGLEN, "Output %c", 'A' + outIdx);
+        scratchbuf[SCRATCHSTRINGLEN-1] = 0;
+        outputLabels[outIdx] = scratchbuf;
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
@@ -174,7 +183,9 @@ T_PRINT("Constructor called.");
             inputConditions[inMatrixPtr].resetInput(0, false);
             inputConditions[inMatrixPtr].resetState();
 
-            inputLabels[inMatrixPtr] = "unnamed";
+            snprintf(scratchbuf, SCRATCHSTRINGLEN, "Input %c%d", 'A' + outIdx, inIdx);
+            scratchbuf[SCRATCHSTRINGLEN-1] = 0;
+            inputLabels[inMatrixPtr] = scratchbuf;
 
             inMatrixPtr++;
         }
@@ -295,7 +306,7 @@ void TTLConditionalTrigger::pushStateToDisplay()
         int inMatrixPtr = 0;
         for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
         {
-            theEditor->pushOutputConfigToEditor(outIdx, outputConditions[outIdx].getConfig(), outputLabels[outIdx]);
+            theEditor->pushOutputConfigToEditor(outIdx, outputConditions[outIdx].getConfig(), needAllInputs[outIdx], outputLabels[outIdx]);
             for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
             {
                 theEditor->pushInputConfigToEditor(inMatrixPtr, inputConditions[inMatrixPtr].getConfig(), inputLabels[inMatrixPtr]);

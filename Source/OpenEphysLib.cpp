@@ -60,7 +60,9 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 		info->type = PluginType::PLUGIN_TYPE_PROCESSOR;
 
 		// Processor name shown in the GUI.
-		info->processor.name = "TTL Conditional Trigger";
+		// NOTE - This gets truncated.
+//		info->processor.name = "TTL Conditional Trigger";
+		info->processor.name = "TTL Cond Trigger";
 
 		// Type of processor. Can be FilterProcessor, SourceProcessor, SinkProcessor or UtilityProcessor. Specifies where on the processor list will appear
 		info->processor.type = ProcessorType::FilterProcessor;
