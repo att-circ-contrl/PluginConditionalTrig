@@ -30,17 +30,17 @@
 #define TTLCONDTRIG_PARAM_STRIDE 10
 
 #define TTLCONDTRIG_STRIDE_INPUT TTLCONDTRIG_PARAM_STRIDE
-#define TTLCONDTRIG_STRIDE_OUTPUT (TTLCONDTRIG_INPUTS * TTLCONDTRIG_PARAM_STRIDE)
+#define TTLCONDTRIG_STRIDE_OUTPUT (TTLCONDTRIG_INPUTS * TTLCONDTRIG_STRIDE_INPUT)
 
 // Class declarations.
 namespace TTLConditionTrig
 {
 	// Configuration for processing conditions on one signal.
+	// Nothing in here is dynamically allocated, so copy-by-value is fine.
 	class ConditionConfig
 	{
 	public:
 		// Configuration parameters. External editing is fine.
-		std::string label;
 		bool isEnabled;
 		int64 delay_min_samps, delay_max_samps;
 		int64 sustain_samps;
@@ -84,10 +84,10 @@ namespace TTLConditionTrig
 
 	protected:
 		ConditionConfig config;
-		int64 prevTime;
-		bool prevLevel;
-		CircBuf<int64,TTLCONDTRIG_EVENT_BUF_SIZE> pendingTimes;
-		CircBuf<bool,TTLCONDTRIG_EVENT_BUF_SIZE> pendingLevels;
+		int64 prevInputTime;
+		bool prevInputLevel;
+		CircBuf<int64,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputTimes;
+		CircBuf<bool,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputLevels;
 	};
 
 
@@ -136,6 +136,10 @@ namespace TTLConditionTrig
 		// So, C++ arrays rather than Array/OwnedArray should be fine.
 		ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
+
+		// We're declared non-copyable, so internal dynamic allocation is fine for these.
+		std::string inputLabels[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		std::string outputLabels[TTLCONDTRIG_OUTPUTS];
 
 	private:
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTrigger);

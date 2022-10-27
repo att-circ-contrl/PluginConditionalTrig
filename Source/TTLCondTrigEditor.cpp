@@ -1,5 +1,5 @@
-#include "TTLCondTrigEditor.h"
 #include "TTLCondTrig.h"
+#include "TTLCondTrigEditor.h"
 
 using namespace TTLConditionTrig;
 
@@ -28,11 +28,30 @@ TTLConditionalTriggerEditor::TTLConditionalTriggerEditor(TTLConditionalTrigger* 
 
 T_PRINT("Editor constructor called.");
 
-    settingImage = new WrenchImage;
+    // Force configuration to sane state.
+
+    int inMatrixPtr = 0;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputConfig[outIdx].clear();
+        outputLabels[outIdx] = "unnamed";
+
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        {
+            inputConfig[inMatrixPtr].clear();
+            inputLabels[inMatrixPtr] = "unnamed";
+            inMatrixPtr++;
+        }
+    }
+
+
+    // Build the GUI.
+
+    settingsImage = new WrenchImage;
 
 // FIXME - Testing.
 dummyButton = new ImageButton("Foo");
-dummyButton->setImages(true, true, true, *settingImage, 1.0, COLOUR_TRANSPARENT, *settingImage, 1.0, COLOUR_TRANSPARENT, *settingImage, 0.5, COLOUR_TRANSPARENT);
+dummyButton->setImages(true, true, true, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 0.5, COLOUR_TRANSPARENT);
 dummyButton->addListener(this);
 addAndMakeVisible(dummyButton);
 //dummyButton->setCentreRelative(0.5,0.5);
@@ -40,6 +59,8 @@ dummyButton->setBounds(30, 30, 60, 60);
 
 // FIXME - Editor constructor NYI.
 
+
+    // Start the state refresh timer.
     // NOTE - The redraw timer should be running even if we're not acquiring data.
     startTimer(TTLCONDTRIG_DISPLAY_REFRESH_MS);
 
@@ -71,24 +92,50 @@ void TTLConditionalTriggerEditor::timerCallback()
         doConfigStateRedraw();
     }
 
-    // Always redraw elements that are visible while running.
+    // Always redraw the elements that are updated while running.
     doRunningStateRedraw();
 }
 
 
-// Accessor to push plugin configuration state to the editor.
-// FIXME - Placeholder. This needs to take arguments.
-void TTLConditionalTriggerEditor::pushConfigStateToEditor()
+// Accessor to push input configuration state to the editor.
+void TTLConditionalTriggerEditor::pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, std::string newLabel)
 {
-// FIXME - pushConfigStateToEditor() NYI.
+    if ( (inMatrixIdx >= 0) && (inMatrixIdx < (TTLCONDTRIG_INPUTS*TTLCONDTRIG_OUTPUTS)) )
+    {
+        inputConfig[inMatrixIdx] = newConfig;
+        inputLabels[inMatrixIdx] = newLabel;
+    }
+}
+
+
+// Accessor to push output configuration state to the editor.
+void TTLConditionalTriggerEditor::pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, std::string newLabel)
+{
+    if ( (outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS) )
+    {
+        outputConfig[outIdx] = newConfig;
+        outputLabels[outIdx] = newLabel;
+    }
 }
 
 
 // Accessor to push monitoring state (and output enable) to the editor.
-// FIXME - Placeholder. This needs to take arguments.
-void TTLConditionalTriggerEditor::pushRunningStateToEditor()
+// NOTE - Passing arrays by value involves shenanigans, but the caller's arrays should persist until this call returns, so we'll be okay.
+void TTLConditionalTriggerEditor::pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS])
 {
-// FIXME - pushRunningStateToEditor() NYI.
+    // Copy enable (configuration) and I/O state (lamp state).
+    int inMatrixPtr = 0;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputLampState[outIdx] = outputState[outIdx];
+        outputConfig[outIdx].isEnabled = outputsEnabled[outIdx];
+
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        {
+            inputLampState[inMatrixPtr] = rawInputs[inMatrixPtr];
+            inMatrixPtr++;
+        }
+    }
 }
 
 

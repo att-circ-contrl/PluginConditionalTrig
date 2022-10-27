@@ -15,6 +15,7 @@
 namespace TTLConditionTrig
 {
 	class TTLConditionalTrigger;
+	class ConditionConfig;
 
 
 	// GUI tray for conditional trigger display and configuration.
@@ -36,16 +37,32 @@ namespace TTLConditionTrig
 		// Accessors.
 		// NOTE - The plugin has to push data to us, rather than us pulling it.
 		// Most of the config state only gets updated when not running. Output enable is the exception.
-		// FIXME - Placeholder. This needs to take arguments.
-		void pushConfigStateToEditor();
-		void pushRunningStateToEditor();
+
+		// NOTE - Pushing arguments by value rather than by reference to avoid multithreading issues.
+		void pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, std::string newLabel);
+		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, std::string newLabel);
+		// NOTE - Passing arrays by value involves shenanigans, but the caller's arrays should persist until this call returns, so we'll be okay.
+		void pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS]);
+
+		// These are normally just called by the timer callback.
 		void doConfigStateRedraw();
 		void doRunningStateRedraw();
 
-	private:
+	protected:
 		TTLConditionalTrigger* parent;
 
-		ScopedPointer<Image> settingImage;
+		ScopedPointer<Image> settingsImage;
+
+		// We have our own local copies of configuration state.
+		ConditionConfig inputConfig[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		ConditionConfig outputConfig[TTLCONDTRIG_OUTPUTS];
+		std::string inputLabels[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		std::string outputLabels[TTLCONDTRIG_OUTPUTS];
+
+		// We also have a cached copy of the input and output.
+		bool inputLampState[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		bool outputLampState[TTLCONDTRIG_OUTPUTS];
+
 // FIXME - Testing.
 ScopedPointer<ImageButton> dummyButton;
 

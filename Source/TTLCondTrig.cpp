@@ -1,5 +1,5 @@
-#include "TTLCondTrigEditor.h"
 #include "TTLCondTrig.h"
+#include "TTLCondTrigEditor.h"
 
 using namespace TTLConditionTrig;
 
@@ -30,8 +30,6 @@ ConditionConfig::ConditionConfig()
 void ConditionConfig::clear()
 {
     // Set sane defaults.
-
-    label = "unnamed";
 
     isEnabled = false;
 
@@ -76,7 +74,7 @@ void ConditionProcessor::setConfig(ConditionConfig &newConfig)
 {
     config = newConfig;
 
-    // NOTE - We're clearing pending state but keeping the record of previous input.
+    // NOTE - We're clearing pending output state but keeping the record of previous input.
     resetState();
 }
 
@@ -91,16 +89,16 @@ ConditionConfig ConditionProcessor::getConfig()
 // This is used for initialization at the start of acquisition.
 void ConditionProcessor::resetInput(int64 resetTime, bool resetInput)
 {
-    prevTime = resetTime;
-    prevLevel = resetInput;
+    prevInputTime = resetTime;
+    prevInputLevel = resetInput;
 }
 
 
 // State reset. This clears active events after a configuration change.
 void ConditionProcessor::resetState()
 {
-    pendingTimes.clear();
-    pendingLevels.clear();
+    pendingOutputTimes.clear();
+    pendingOutputLevels.clear();
 }
 
 
@@ -115,21 +113,21 @@ void ConditionProcessor::handleInput(int64 inputTime, bool inputLevel)
 
 bool ConditionProcessor::hasPendingOutput()
 {
-    return (pendingTimes.count() > 0);
+    return (pendingOutputTimes.count() > 0);
 }
 
 
 int64 ConditionProcessor::getNextOutputTime()
 {
     // NOTE - This will return a safe value (0) if we don't have output.
-    return pendingTimes.snoop();
+    return pendingOutputTimes.snoop();
 }
 
 
 bool ConditionProcessor::getNextOutputLevel()
 {
     // NOTE - This will return a safe value (false) if we don't have output.
-    return pendingLevels.snoop();
+    return pendingOutputLevels.snoop();
 }
 
 
@@ -137,8 +135,8 @@ bool ConditionProcessor::getNextOutputLevel()
 void ConditionProcessor::acknowledgeOutput()
 {
     // Discard return values.
-    pendingTimes.dequeue();
-    pendingLevels.dequeue();
+    pendingOutputTimes.dequeue();
+    pendingOutputLevels.dequeue();
 }
 
 
@@ -165,14 +163,18 @@ T_PRINT("Constructor called.");
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputConditions[outIdx].setConfig(dummyConfig);
-        outputConditions[outIdx].resetInput(0, false);
+        outputConditions[outIdx].resetInput(-1, false);
         outputConditions[outIdx].resetState();
+
+        outputLabels[outIdx] = "unnamed";
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
             inputConditions[inMatrixPtr].setConfig(dummyConfig);
             inputConditions[inMatrixPtr].resetInput(0, false);
             inputConditions[inMatrixPtr].resetState();
+
+            inputLabels[inMatrixPtr] = "unnamed";
 
             inMatrixPtr++;
         }
@@ -279,8 +281,31 @@ void TTLConditionalTrigger::setParamByChan(int outputIdx, int inputIdx, int para
 void TTLConditionalTrigger::pushStateToDisplay()
 {
     // NOTE - The editor is already stored as the GenericProcessor class variable "editor".
+    // We do need to re-cast it.
+    TTLConditionalTriggerEditor* theEditor = (TTLConditionalTriggerEditor*) (editor.get());
 
-// FIXME - pushStateToDisplay() NYI.
+    // NOTE - We're only pushing full config state when we _aren't_ running.
+    // Check the "isEnabled" variable to determine this.
+
+    if (!isEnabled)
+    {
+        // We're not running. Propagate the config state.
+        // NOTE - This should never actually change anything, since we got our config from the UI. We're doing it in case of "can't happen" desynchronization.
+        int inMatrixPtr = 0;
+        for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        {
+            theEditor->pushOutputConfigToEditor(outIdx, outputConditions[outIdx].getConfig(), outputLabels[outIdx]);
+            for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+            {
+                theEditor->pushInputConfigToEditor(inMatrixPtr, inputConditions[inMatrixPtr].getConfig(), inputLabels[inMatrixPtr]);
+                inMatrixPtr++;
+            }
+        }
+    }
+
+    // Always propagate running state.
+
+// FIXME - pushStateToDisplay() running state NYI.
 }
 
 
