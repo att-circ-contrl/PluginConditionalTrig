@@ -2,15 +2,6 @@
 #define TTLCONDTRIGEDITOR_H_DEFINED
 
 #include <EditorHeaders.h>
-#include "TTLCondTrigIcons.h"
-
-// Magic constants for GUI geometry.
-
-// Magic constants for GUI colours.
-#define COLOUR_TRANSPARENT juce::Colours::transparentWhite
-
-// Magic constants for display refresh.
-#define TTLCONDTRIG_DISPLAY_REFRESH_MS 20
 
 namespace TTLConditionTrig
 {

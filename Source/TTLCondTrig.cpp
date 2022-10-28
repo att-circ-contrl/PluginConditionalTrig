@@ -1,5 +1,6 @@
 #include "TTLCondTrig.h"
 #include "TTLCondTrigEditor.h"
+#include "TTLCondTrigConstants.h"
 
 using namespace TTLConditionTrig;
 
@@ -280,8 +281,8 @@ T_PRINT("loadCustomParametersFromXml() called.");
 void TTLConditionalTrigger::setParamByChan(int outputIdx, int inputIdx, int paramIdx, long newValue)
 {
   int packedIdx = paramIdx;
-  packedIdx += inputIdx * TTLCONDTRIG_STRIDE_INPUT;
-  packedIdx += outputIdx * TTLCONDTRIG_STRIDE_OUTPUT;
+  packedIdx += inputIdx * TTLCONDTRIG_PARAM_STRIDE_INPUT;
+  packedIdx += outputIdx * TTLCONDTRIG_PARAM_STRIDE_OUTPUT;
 
   setParameter(packedIdx, newValue);
 }

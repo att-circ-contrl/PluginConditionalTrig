@@ -7,6 +7,7 @@
 // The header both declares and implements them. Extra copies get pruned at link-time.
 #include "TTLCondTrigTemplates.h"
 
+
 // Magic constants for data geometry.
 #define TTLCONDTRIG_INPUTS 4
 #define TTLCONDTRIG_OUTPUTS 4
@@ -15,22 +16,6 @@
 // Making this a power of 2 _should_ be faster but isn't vital.
 #define TTLCONDTRIG_EVENT_BUF_SIZE 16384
 
-// Magic constants for parameter indices.
-// Making this an enum isn't any cleaner, since we aren't guaranteed sequential values.
-#define TTLCONDTRIG_PARAM_IS_ENABLED 0
-#define TTLCONDTRIG_PARAM_CHAN_IDX 1
-#define TTLCONDTRIG_PARAM_BIT_IDX 2
-#define TTLCONDTRIG_PARAM_DELAY_MIN 3
-#define TTLCONDTRIG_PARAM_DELAY_MAX 4
-#define TTLCONDTRIG_PARAM_SUSTAIN 5
-#define TTLCONDTRIG_PARAM_DEADTIME 6
-#define TTLCONDTRIG_PARAM_DEGLITCH 7
-#define TTLCONDTRIG_PARAM_OUTSENSE 8
-// This should be equal to or greater than the number of per-channel parameters.
-#define TTLCONDTRIG_PARAM_STRIDE 10
-
-#define TTLCONDTRIG_STRIDE_INPUT TTLCONDTRIG_PARAM_STRIDE
-#define TTLCONDTRIG_STRIDE_OUTPUT (TTLCONDTRIG_INPUTS * TTLCONDTRIG_STRIDE_INPUT)
 
 // Class declarations.
 namespace TTLConditionTrig

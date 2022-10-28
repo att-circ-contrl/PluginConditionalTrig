@@ -1,29 +1,9 @@
 #include "TTLCondTrig.h"
 #include "TTLCondTrigEditor.h"
+#include "TTLCondTrigIcons.h"
+#include "TTLCondTrigConstants.h"
 
 using namespace TTLConditionTrig;
-
-
-// Private magic constants for GUI geometry.
-
-
-// Private magic constants for colours.
-
-#define WRENCH_FOREGROUND juce::Colours::black
-#define WRENCH_BACKGROUND juce::Colours::white
-
-#define CONN_FOREGROUND juce::Colours::lightyellow
-#define CONN_BACKGROUND juce::Colours::transparentWhite
-#define DISCONN_FOREGROUND juce::Colours::black
-#define DISCONN_BACKGROUND juce::Colours::transparentWhite
-
-#define LAMP_BACKGROUND juce::Colours::transparentWhite
-#define LAMP_OUTLINE juce::Colours::black
-#define LAMP_ON_FILL juce::Colours::lightgreen
-#define LAMP_ON_HIGHLIGHT juce::Colours::white
-#define LAMP_OFF_FILL juce::Colours::darkgrey
-#define LAMP_OFF_HIGHLIGHT juce::Colours::grey
-
 
 // Diagnostic tattle macros.
 #define TRIGEDITTATTLE
