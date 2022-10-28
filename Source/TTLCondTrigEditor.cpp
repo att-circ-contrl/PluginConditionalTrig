@@ -17,7 +17,164 @@ using namespace TTLConditionTrig;
 
 
 //
+//
+// GUI row for status and config buttons for one input.
+
+
+// Constructor.
+TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLConditionalTriggerEditor* newParent, int newInIdx)
+{
+    parent = newParent;
+    inIdx = newInIdx;
+
+    // Indicator lamp icon.
+    // It's less expensive to have two images and make only one visible than it is to change the image on one component.
+
+    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_ON_FILL, LAMP_ON_HIGHLIGHT);
+    lampOnComponent = new ImageComponent();
+    lampOnComponent->setImage(*lampOnImage);
+
+    lampOnComponent->setBounds(0, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampOnComponent);
+    lampOnComponent->setEnabled(false);
+    lampOnComponent->setVisible(false);
+
+    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+    lampOffComponent = new ImageComponent();
+    lampOffComponent->setImage(*lampOffImage);
+
+    lampOffComponent->setBounds(0, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampOffComponent);
+    lampOffComponent->setEnabled(false);
+
+    // Input name label.
+    inputNameLabel = new Label("Input Name", "undefined");
+    inputNameLabel->setBounds(TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_XGAP, 0, TTLCONDTRIG_LABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(inputNameLabel);
+    inputNameLabel->setEnabled(false);
+
+    // Settings button.
+    settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
+    settingsButton = new ImageButton;
+    // Images are normal, hover-over, and pressed.
+    // Tuples are image, image opacity, and overlay colour.
+    settingsButton->setImages(true, true, true, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 0.5, COLOUR_TRANSPARENT);
+    settingsButton->setBounds(TTLCONDTRIG_INROW_XSIZE - TTLCONDTRIG_WRENCH_SIZE, 0, TTLCONDTRIG_WRENCH_SIZE, TTLCONDTRIG_WRENCH_SIZE);
+    settingsButton->addListener(this);
+    addAndMakeVisible(settingsButton);
+    settingsButton->setEnabled(true);
+}
+
+
+// Callback for button presses. This is just the settings button.
+void TTLConditionalTriggerEditorInputRow::buttonClicked(Button *theButton)
+{
+    // There's only one button to click.
+    parent->clickedInputSettings(inIdx);
+}
+
+
+// Accessors.
+
+void TTLConditionalTriggerEditorInputRow::setInputLabel(std::string newLabel)
+{
+    inputNameLabel->setText(newLabel, dontSendNotification);
+}
+
+
+void TTLConditionalTriggerEditorInputRow::setLampState(bool wantLit)
+{
+    lampOnComponent->setVisible(wantLit);
+    lampOffComponent->setVisible(!wantLit);
+}
+
+
+void TTLConditionalTriggerEditorInputRow::setRunningState(bool isRunning)
+{
+    // Lock out the settings button if we're running.
+    settingsButton->setEnabled(!isRunning);
+}
+
+
+//
+//
+// GUI panel for configuring a set of inputs associated with an output.
+
+
+// Constructor.
+TTLConditionalTriggerEditorInputPanel::TTLConditionalTriggerEditorInputPanel(TTLConditionalTriggerEditor* newParent)
+{
+    backgroundColour = COLOUR_BOGUS;
+
+    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+    {
+        inputRows[inIdx] = new TTLConditionalTriggerEditorInputRow(newParent, inIdx);
+        inputRows[inIdx]->setBounds(TTLCONDTRIG_XGAP, (TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP) * (inIdx+1) + TTLCONDTRIG_YGAP, TTLCONDTRIG_INROW_XSIZE, TTLCONDTRIG_YSIZE);
+        addAndMakeVisible(inputRows[inIdx]);
+    }
+
+    bannerLabel = new Label("Panel Title", "undefined");
+    bannerLabel->setBounds(TTLCONDTRIG_XGAP, TTLCONDTRIG_YGAP, TTLCONDTRIG_INPANEL_XSIZE - (TTLCONDTRIG_XGAP * 2), TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(bannerLabel);
+    bannerLabel->setEnabled(false);
+
+    setOutputLabel("undefined");
+
+    setOpaque(true);
+}
+
+
+// Redraw hook.
+void TTLConditionalTriggerEditorInputPanel::paint(Graphics& g)
+{
+    // Flat background underneath child components.
+    g.fillAll(backgroundColour);
+}
+
+
+// Accessors.
+
+void TTLConditionalTriggerEditorInputPanel::setOutputLabel(std::string newLabel)
+{
+    std::string scratchstring;
+
+    scratchstring = "Inputs for ";
+    scratchstring += newLabel;
+    bannerLabel->setText(scratchstring, dontSendNotification);
+}
+
+
+void TTLConditionalTriggerEditorInputPanel::setInputLabel(int inIdx, std::string newLabel)
+{
+    if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
+       inputRows[inIdx]->setInputLabel(newLabel);
+}
+
+
+void TTLConditionalTriggerEditorInputPanel::setLampState(int inIdx, bool wantLit)
+{
+    if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
+       inputRows[inIdx]->setLampState(wantLit);
+}
+
+
+void TTLConditionalTriggerEditorInputPanel::setFillColour(Colour newColour)
+{
+    backgroundColour = newColour;
+}
+
+
+void TTLConditionalTriggerEditorInputPanel::setRunningState(bool isRunning)
+{
+    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        inputRows[inIdx]->setRunningState(isRunning);
+}
+
+
+//
+//
 // GUI tray for conditional trigger display and configuration.
+
 
 // Constructor.
 TTLConditionalTriggerEditor::TTLConditionalTriggerEditor(TTLConditionalTrigger* newParent) : GenericEditor(newParent, true)
@@ -58,37 +215,13 @@ T_PRINT("Editor constructor called.");
 
     // Build the GUI.
 
-    settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
-    connectImage = new ConnectedImage(CONN_BACKGROUND, CONN_FOREGROUND);
-    disconnectImage = new DisconnectedImage(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
-    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_ON_FILL, LAMP_ON_HIGHLIGHT);
-    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+// FIXME - Editor constructor NYI/IPR.
 
+    inputStatusPanel = new TTLConditionalTriggerEditorInputPanel(this);
+    addAndMakeVisible(inputStatusPanel);
+    inputStatusPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_INPANEL_XSIZE, TTLCONDTRIG_INPANEL_YSIZE);
 
-// FIXME - Testing.
-#if 1
-dummyButton = new ImageButton("Foo");
-
-// Images are normal, hover-over, and pressed.
-// Tuples are image, image opacity, and overlay colour.
-// Settings button test.
-//dummyButton->setImages(true, true, true, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 0.5, COLOUR_TRANSPARENT);
-// Connection button test.
-//dummyButton->setImages(true, true, true, *disconnectImage, 1.0, COLOUR_TRANSPARENT, *disconnectImage, 1.0, COLOUR_TRANSPARENT, *connectImage, 1.0, COLOUR_TRANSPARENT);
-// Lamp image test.
-dummyButton->setImages(true, true, true, *lampOffImage, 1.0, COLOUR_TRANSPARENT, *lampOffImage, 1.0, COLOUR_TRANSPARENT, *lampOnImage, 1.0, COLOUR_TRANSPARENT);
-// Set this if we're testing a toggle button.
-dummyButton->setClickingTogglesState(true);
-
-dummyButton->addListener(this);
-addAndMakeVisible(dummyButton);
-//dummyButton->setCentreRelative(0.5,0.5);
-dummyButton->setBounds(30, 30, 60, 60);
-#endif
-
-
-// FIXME - Editor constructor NYI.
-
+    setDesiredWidth(TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_GLOBAL_XOFFSET*2);
 
     // Start the state refresh timer.
     // NOTE - The redraw timer should be running even if we're not acquiring data.
@@ -183,6 +316,34 @@ void TTLConditionalTriggerEditor::doConfigStateRedraw()
 void TTLConditionalTriggerEditor::doRunningStateRedraw()
 {
 // FIXME - doRunningStateRedraw() NYI.
+}
+
+
+// Accessor for switching to editing conditions for an input.
+void TTLConditionalTriggerEditor::clickedInputSettings(int idxClicked)
+{
+// FIXME - clickedInputSettings() NYI.
+}
+
+
+// Accessor for switching to editing conditions for an ouput.
+void TTLConditionalTriggerEditor::clickedOutputSettings(int idxClicked)
+{
+// FIXME - clickedOutputSettings() NYI.
+}
+
+
+// Accessor for switching which output's inputs are displayed.
+void TTLConditionalTriggerEditor::clickedOutputTab(int idxClicked)
+{
+// FIXME - clickedOutputTab() NYI.
+}
+
+
+// Accessor for leaving the condition editor.
+void TTLConditionalTriggerEditor::clickedConditionExit()
+{
+// FIXME - clickedConditionExit() NYI.
 }
 
 
