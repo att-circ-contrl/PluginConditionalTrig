@@ -51,7 +51,8 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     inputNameLabel = new Label("Input Name", "undefined");
     inputNameLabel->setBounds(TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_XGAP, 0, TTLCONDTRIG_LABEL_XSIZE, TTLCONDTRIG_YSIZE);
     addAndMakeVisible(inputNameLabel);
-    inputNameLabel->setEnabled(false);
+    // Disabling this greys it out. Instead let it get clicks and ignore them.
+//    inputNameLabel->setEnabled(false);
 
     // Settings button.
     settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
@@ -62,7 +63,6 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     settingsButton->setBounds(TTLCONDTRIG_INROW_XSIZE - TTLCONDTRIG_WRENCH_SIZE, 0, TTLCONDTRIG_WRENCH_SIZE, TTLCONDTRIG_WRENCH_SIZE);
     settingsButton->addListener(this);
     addAndMakeVisible(settingsButton);
-    settingsButton->setEnabled(true);
 }
 
 
@@ -116,7 +116,8 @@ TTLConditionalTriggerEditorInputPanel::TTLConditionalTriggerEditorInputPanel(TTL
     bannerLabel = new Label("Panel Title", "undefined");
     bannerLabel->setBounds(TTLCONDTRIG_XGAP, TTLCONDTRIG_YGAP, TTLCONDTRIG_INPANEL_XSIZE - (TTLCONDTRIG_XGAP * 2), TTLCONDTRIG_YSIZE);
     addAndMakeVisible(bannerLabel);
-    bannerLabel->setEnabled(false);
+    // Disabling this greys it out. Instead let it get clicks and ignore them.
+//    bannerLabel->setEnabled(false);
 
     setOutputLabel("undefined");
 
@@ -244,16 +245,25 @@ TTLConditionalTriggerEditor::~TTLConditionalTriggerEditor()
 // Timer callback.
 void TTLConditionalTriggerEditor::timerCallback()
 {
+    // Check the "acquisitionIsActive" state variable from GenericEditor.
+
+    // If we just changed running/not-running state, update the GUI.
+    if (acquisitionIsActive != wasRunningLastRedraw)
+    {
+        inputStatusPanel->setRunningState(acquisitionIsActive);
+// FIXME - Set running/not-running for output status panel here too.
+    }
+
+    wasRunningLastRedraw = acquisitionIsActive;
+
     // Pull data if not running.
     // If we're running, let process() push it to avoid race conditions.
-
-    // Check the "acquisitionIsActive" state variable from GenericEditor.
     if (!acquisitionIsActive)
-    {
         parent->pushStateToDisplay();
-        // Only fully redraw configuration state when we're not running.
+
+    // Only fully redraw configuration state when we're not running.
+    if (!acquisitionIsActive)
         doConfigStateRedraw();
-    }
 
     // Always redraw the elements that are updated while running.
     doRunningStateRedraw();
@@ -322,6 +332,7 @@ void TTLConditionalTriggerEditor::doRunningStateRedraw()
 // Accessor for switching to editing conditions for an input.
 void TTLConditionalTriggerEditor::clickedInputSettings(int idxClicked)
 {
+T_PRINT("clickedInputSettings() called for input " << idxClicked << ".");
 // FIXME - clickedInputSettings() NYI.
 }
 
@@ -329,6 +340,7 @@ void TTLConditionalTriggerEditor::clickedInputSettings(int idxClicked)
 // Accessor for switching to editing conditions for an ouput.
 void TTLConditionalTriggerEditor::clickedOutputSettings(int idxClicked)
 {
+T_PRINT("clickedOutputSettings() called for output " << idxClicked << ".");
 // FIXME - clickedOutputSettings() NYI.
 }
 
@@ -336,6 +348,7 @@ void TTLConditionalTriggerEditor::clickedOutputSettings(int idxClicked)
 // Accessor for switching which output's inputs are displayed.
 void TTLConditionalTriggerEditor::clickedOutputTab(int idxClicked)
 {
+T_PRINT("clickedOutputTab() called for output " << idxClicked << ".");
 // FIXME - clickedOutputTab() NYI.
 }
 
@@ -343,6 +356,7 @@ void TTLConditionalTriggerEditor::clickedOutputTab(int idxClicked)
 // Accessor for leaving the condition editor.
 void TTLConditionalTriggerEditor::clickedConditionExit()
 {
+T_PRINT("clickedConditionExit() called.");
 // FIXME - clickedConditionExit() NYI.
 }
 
