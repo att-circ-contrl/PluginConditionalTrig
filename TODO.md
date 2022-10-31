@@ -14,4 +14,6 @@ the wrench icon, for ease of extension?
 
 * Perhaps split out the icons into a separate library?
 
+* Bug: For some reason, _without_ a source upstream of it, clicking on output enable/disable icons doesn't work. But with a source, it does.
+
 _(This is the end of the file.)_

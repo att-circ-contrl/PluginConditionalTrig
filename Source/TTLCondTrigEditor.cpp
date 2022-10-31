@@ -104,8 +104,9 @@ void TTLConditionalTriggerEditorInputRow::setInputEnabled(bool isEnabled)
 {
     // If we're not using this input, disable the text (to grey it out) and set an appropriate label.
 
-    if (!isEnabled)
-        setInputLabel("(unused)");
+// FIXME - We do need to flag unused inputs.
+//    if (!isEnabled)
+//        setInputLabel("(unused)");
 
     inputNameLabel->setEnabled(isEnabled);
 }
@@ -135,8 +136,6 @@ TTLConditionalTriggerEditorInputPanel::TTLConditionalTriggerEditorInputPanel(TTL
 //    bannerLabel->setEnabled(false);
 
     setOutputLabel("undefined");
-
-    setOpaque(true);
 }
 
 
@@ -163,14 +162,14 @@ void TTLConditionalTriggerEditorInputPanel::setOutputLabel(std::string newLabel)
 void TTLConditionalTriggerEditorInputPanel::setInputLabel(int inIdx, std::string newLabel)
 {
     if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
-       inputRows[inIdx]->setInputLabel(newLabel);
+        inputRows[inIdx]->setInputLabel(newLabel);
 }
 
 
 void TTLConditionalTriggerEditorInputPanel::setLampState(int inIdx, bool wantLit)
 {
     if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
-       inputRows[inIdx]->setLampState(wantLit);
+        inputRows[inIdx]->setLampState(wantLit);
 }
 
 
@@ -190,7 +189,256 @@ void TTLConditionalTriggerEditorInputPanel::setRunningState(bool isRunning)
 void TTLConditionalTriggerEditorInputPanel::setInputEnabled(int inIdx, bool isEnabled)
 {
     if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
-       inputRows[inIdx]->setInputEnabled(isEnabled);
+        inputRows[inIdx]->setInputEnabled(isEnabled);
+}
+
+
+//
+//
+// GUI row for status and config buttons for one output.
+
+
+// Constructor.
+TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLConditionalTriggerEditor* newParent, int newOutIdx)
+{
+    parent = newParent;
+    outIdx = newOutIdx;
+
+    // Enable button.
+    connectOnImage = new ConnectedImage(CONN_BACKGROUND, CONN_FOREGROUND);
+    connectOffImage = new DisconnectedImage(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
+    enableButton = new ImageButton;
+    // Images are normal, hover-over, and pressed.
+    // Tuples are image, image opacity, and overlay colour.
+    enableButton->setImages(true, true, true, *connectOffImage, 1.0, COLOUR_TRANSPARENT, *connectOffImage, 1.0, COLOUR_TRANSPARENT, *connectOnImage, 0.5, COLOUR_TRANSPARENT);
+    enableButton->setBounds(TTLCONDTRIG_XGAP, 0, TTLCONDTRIG_CONN_SIZE, TTLCONDTRIG_CONN_SIZE);
+    enableButton->setClickingTogglesState(true);
+    enableButton->addListener(this);
+    addAndMakeVisible(enableButton);
+
+    // Output name label.
+    outputNameLabel = new Label("Output Name", "undefined");
+    outputNameLabel->setBounds(TTLCONDTRIG_CONN_SIZE + TTLCONDTRIG_XGAP*2, 0, TTLCONDTRIG_LABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(outputNameLabel);
+    // Disabling this greys it out. Instead let it get clicks and ignore them.
+//    outputNameLabel->setEnabled(false);
+
+    // Settings button.
+    settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
+    settingsButton = new ImageButton;
+    // Images are normal, hover-over, and pressed.
+    // Tuples are image, image opacity, and overlay colour.
+    settingsButton->setImages(true, true, true, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 0.5, COLOUR_TRANSPARENT);
+    settingsButton->setBounds(TTLCONDTRIG_CONN_SIZE + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_XGAP*3, 0, TTLCONDTRIG_WRENCH_SIZE, TTLCONDTRIG_WRENCH_SIZE);
+    settingsButton->addListener(this);
+    addAndMakeVisible(settingsButton);
+
+    // Indicator lamp icon.
+    // It's less expensive to have two images and make only one visible than it is to change the image on one component.
+
+    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_ON_FILL, LAMP_ON_HIGHLIGHT);
+    lampOnComponent = new ImageComponent();
+    lampOnComponent->setImage(*lampOnImage);
+
+    lampOnComponent->setBounds(TTLCONDTRIG_CONN_SIZE + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_WRENCH_SIZE + TTLCONDTRIG_XGAP*4, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampOnComponent);
+    lampOnComponent->setEnabled(false);
+    lampOnComponent->setVisible(false);
+
+    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+    lampOffComponent = new ImageComponent();
+    lampOffComponent->setImage(*lampOffImage);
+
+    lampOffComponent->setBounds(TTLCONDTRIG_CONN_SIZE + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_WRENCH_SIZE + TTLCONDTRIG_XGAP*4, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampOffComponent);
+    lampOffComponent->setEnabled(false);
+
+    // Tab button.
+    tabButton = new ColorButton("", Font("Small Text", 13, Font::plain));
+    tabButton->setColors(juce::Colours::black, COLOUR_BOGUS);
+    tabButton->setBounds(TTLCONDTRIG_OUTROW_XSIZE - TTLCONDTRIG_TAB_XSIZE, 0, TTLCONDTRIG_TAB_XSIZE, TTLCONDTRIG_YSIZE);
+    tabButton->addListener(this);
+    addAndMakeVisible(tabButton);
+
+    // Force sane state.
+    setTabColour(COLOUR_BOGUS);
+    setOutputEnabled(false);
+    setRunningState(false);
+}
+
+
+// Callback for button presses.
+// This is the settings button, the enable button, or the output selection tab.
+void TTLConditionalTriggerEditorOutputRow::buttonClicked(Button *theButton)
+{
+    if (theButton == tabButton)
+        parent->clickedOutputTab(outIdx);
+    else if (theButton == settingsButton)
+        parent->clickedOutputSettings(outIdx);
+    else
+        parent->clickedOutputEnableToggle(outIdx);
+}
+
+
+// Redraw hook.
+void TTLConditionalTriggerEditorOutputRow::paint(Graphics& g)
+{
+    // Flat background underneath child components.
+    g.fillAll(currentBackgroundColour);
+}
+
+
+// Accessors.
+
+void TTLConditionalTriggerEditorOutputRow::setOutputLabel(std::string newLabel)
+{
+    outputNameLabel->setText(newLabel, dontSendNotification);
+}
+
+
+void TTLConditionalTriggerEditorOutputRow::setLampState(bool wantLit)
+{
+    lampOnComponent->setVisible(wantLit);
+    lampOffComponent->setVisible(!wantLit);
+}
+
+
+void TTLConditionalTriggerEditorOutputRow::setTabColour(Colour newColour)
+{
+    // The colour we're passed is the saturated version used for the tab itself.
+    // Background and disabled colours are derived from this.
+
+    // Get 50% and 75% versions of the original colour.
+    // These are scaled (darkened); to get saturated, add an offset too.
+
+    uint32 scratch = newColour.getARGB();
+    uint32 dark50 = (scratch & 0x00fefefe) >> 1;
+    uint32 dark75 = (scratch & 0x00ffffff) - ((scratch & 0x00fcfcfc) >> 2);
+
+
+    // Get various derived colours for readability.
+    // Unused ones will be optimized out.
+    // There's no "set from uint32" accessor, so we have to create new instances.
+
+    Colour colourSaturated = newColour;
+
+    Colour colour75Light(dark75 + 0xff404040);
+    Colour colour75Grey(dark75 + 0xff202020);
+    Colour colour75Dark(dark75 + 0xff000000);
+
+    Colour colour50Light(dark50 + 0xff404040);
+    Colour colour50Grey(dark50 + 0xff202020);
+    Colour colour50Dark(dark50 + 0xff000000);
+
+    // Assign decent-looking colours.
+    // NOTE - It turns out that changing colour between enabled/disabled doesn't help.
+    tabColourLight = colour75Dark;
+    tabColourDark = tabColourLight;
+    backColourLight = colourSaturated;
+    backColourDark = backColourLight;
+
+    // This gets overwritten when setOutputEnabled() is called.
+    currentBackgroundColour = COLOUR_BOGUS;
+
+    // FIXME - Call setOutputEnabled() to propagate colour values to buttons.
+    setOutputEnabled(false);
+}
+
+
+Colour TTLConditionalTriggerEditorOutputRow::getBackgroundColour()
+{
+    // This returns the "active selection" version, irrespective of whether or not we are selected.
+    return backColourLight;
+}
+
+
+void TTLConditionalTriggerEditorOutputRow::setRunningState(bool isRunning)
+{
+    // Lock out the settings button if we're running.
+    // We can still switch tabs and enable/disable this output.
+    settingsButton->setEnabled(!isRunning);
+}
+
+
+void TTLConditionalTriggerEditorOutputRow::setOutputEnabled(bool isEnabled)
+{
+    // If we're not using this output, disable the text (to grey it out).
+    outputNameLabel->setEnabled(isEnabled);
+
+    // Force the control button to the correct state.
+    enableButton->setToggleState(isEnabled, dontSendNotification);
+
+    // Set colours.
+    currentBackgroundColour = (isEnabled ? backColourLight : backColourDark);
+    tabButton->setColors(juce::Colours::black, (isEnabled ? tabColourLight : tabColourDark));
+
+    // Force a redraw, since otherwise only some of the elements update.
+    repaint();
+}
+
+
+//
+//
+// GUI panel for configuring all outputs.
+
+
+// Constructor.
+TTLConditionalTriggerEditorOutputPanel::TTLConditionalTriggerEditorOutputPanel(TTLConditionalTriggerEditor* newParent)
+{
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputRows[outIdx] = new TTLConditionalTriggerEditorOutputRow(newParent, outIdx);
+        outputRows[outIdx]->setBounds(TTLCONDTRIG_XGAP, (TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP) * (outIdx+1) + TTLCONDTRIG_YGAP, TTLCONDTRIG_OUTROW_XSIZE, TTLCONDTRIG_YSIZE);
+        addAndMakeVisible(outputRows[outIdx]);
+    }
+}
+
+
+// Accessors.
+
+void TTLConditionalTriggerEditorOutputPanel::setOutputLabel(int outIdx, std::string newLabel)
+{
+    if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+        outputRows[outIdx]->setOutputLabel(newLabel);
+}
+
+
+void TTLConditionalTriggerEditorOutputPanel::setLampState(int outIdx, bool wantLit)
+{
+    if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+        outputRows[outIdx]->setLampState(wantLit);
+}
+
+
+void TTLConditionalTriggerEditorOutputPanel::setTabColour(int outIdx, Colour newColour)
+{
+    if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+        outputRows[outIdx]->setTabColour(newColour);
+}
+
+
+Colour TTLConditionalTriggerEditorOutputPanel::getBackgroundColour(int outIdx)
+{
+    Colour retval = COLOUR_BOGUS;
+
+    if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+        retval = outputRows[outIdx]->getBackgroundColour();
+
+    return retval;
+}
+
+
+void TTLConditionalTriggerEditorOutputPanel::setRunningState(bool isRunning)
+{
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        outputRows[outIdx]->setRunningState(isRunning);
+}
+
+
+void TTLConditionalTriggerEditorOutputPanel::setOutputEnabled(int outIdx, bool isEnabled)
+{
+    if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+        outputRows[outIdx]->setOutputEnabled(isEnabled);
 }
 
 
@@ -210,16 +458,27 @@ T_PRINT("Editor constructor called.");
     // This gets overwritten as soon as we start polling.
 
     int inMatrixPtr = 0;
+    std::string scratchstring;
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputConfig[outIdx].clear();
         needAllInputs[outIdx] = true;
-        outputLabels[outIdx] = "unnamed";
+
+//        outputLabels[outIdx] = "unnamed";
+        scratchstring = "Output ";
+        scratchstring += ('A' + outIdx);
+        outputLabels[outIdx] = scratchstring;
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
             inputConfig[inMatrixPtr].clear();
-            inputLabels[inMatrixPtr] = "unnamed";
+
+//            inputLabels[inMatrixPtr] = "unnamed";
+            scratchstring = "Input ";
+            scratchstring += ('A' + outIdx);
+            scratchstring += std::to_string(inIdx);
+            inputLabels[inMatrixPtr] = scratchstring;
+
             inMatrixPtr++;
         }
     }
@@ -238,13 +497,36 @@ T_PRINT("Editor constructor called.");
 
     // Build the GUI.
 
-// FIXME - Editor constructor NYI/IPR.
-
     inputStatusPanel = new TTLConditionalTriggerEditorInputPanel(this);
     addAndMakeVisible(inputStatusPanel);
     inputStatusPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_INPANEL_XSIZE, TTLCONDTRIG_INPANEL_YSIZE);
 
-    setDesiredWidth(TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_GLOBAL_XOFFSET*2);
+// FIXME - Any-or-all buttons NYI.
+
+    outputStatusPanel = new TTLConditionalTriggerEditorOutputPanel(this);
+    addAndMakeVisible(outputStatusPanel);
+    outputStatusPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET + TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_BOOLBUTTON_XSIZE + TTLCONDTRIG_XGAP*2, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_OUTPANEL_XSIZE, TTLCONDTRIG_OUTPANEL_YSIZE);
+
+// FIXME - Condition settings dialog NYI.
+
+    setDesiredWidth(TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_BOOLBUTTON_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE + TTLCONDTRIG_XGAP*2 + TTLCONDTRIG_GLOBAL_XOFFSET*2);
+
+
+    // Set up coloured tabs.
+    Colour scratchColours[TTLCONDTRIG_OUTPUTS] = OUTPUT_COLOUR_LIST;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        outputStatusPanel->setTabColour(outIdx, scratchColours[outIdx]);
+
+
+    // Propagate output labels.
+    // Input labels are propagated when we select a tab.
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        outputStatusPanel->setOutputLabel(outIdx, outputLabels[outIdx]);
+
+
+    // Select a tab for initial display.
+    clickedOutputTab(0);
+
 
     // Start the state refresh timer.
     // NOTE - The redraw timer should be running even if we're not acquiring data.
@@ -273,7 +555,8 @@ void TTLConditionalTriggerEditor::timerCallback()
     if (acquisitionIsActive != wasRunningLastRedraw)
     {
         inputStatusPanel->setRunningState(acquisitionIsActive);
-// FIXME - Set running/not-running for output status panel here too.
+        outputStatusPanel->setRunningState(acquisitionIsActive);
+// FIXME - Set running/not-running for the "any/all" buttons here too.
     }
 
     wasRunningLastRedraw = acquisitionIsActive;
@@ -348,6 +631,9 @@ void TTLConditionalTriggerEditor::doConfigStateRedraw()
 void TTLConditionalTriggerEditor::doRunningStateRedraw()
 {
 // FIXME - doRunningStateRedraw() NYI.
+
+    // Force a manual repaint. Otherwise the tab ColorButton objects don't change with mouse focus.
+//    repaint();
 }
 
 
@@ -356,6 +642,25 @@ void TTLConditionalTriggerEditor::clickedInputSettings(int idxClicked)
 {
 T_PRINT("clickedInputSettings() called for input " << idxClicked << ".");
 // FIXME - clickedInputSettings() NYI.
+}
+
+
+// Accessor for switching to editing conditions for an ouput.
+void TTLConditionalTriggerEditor::clickedOutputEnableToggle(int idxClicked)
+{
+T_PRINT("clickedOutputEnableToggle() called for output " << idxClicked << ".");
+
+// FIXME - clickedOutputEnableToggle() NYI.
+
+    if ((idxClicked >= 0) && (idxClicked < TTLCONDTRIG_OUTPUTS))
+    {
+        bool newEnabled = !outputConfig[idxClicked].isEnabled;
+T_PRINT("Setting output enable for " << idxClicked << " to " << newEnabled << ".");
+
+// FIXME - Placeholder. Should do this through the plugin.
+outputConfig[idxClicked].isEnabled = newEnabled;
+        outputStatusPanel->setOutputEnabled(idxClicked, newEnabled);
+    }
 }
 
 
@@ -371,7 +676,21 @@ T_PRINT("clickedOutputSettings() called for output " << idxClicked << ".");
 void TTLConditionalTriggerEditor::clickedOutputTab(int idxClicked)
 {
 T_PRINT("clickedOutputTab() called for output " << idxClicked << ".");
-// FIXME - clickedOutputTab() NYI.
+
+    if ((idxClicked >= 0) && (idxClicked < TTLCONDTRIG_OUTPUTS))
+    {
+        outputSelectIdx = idxClicked;
+        inputStatusPanel->setFillColour(outputStatusPanel->getBackgroundColour(idxClicked));
+
+        // Propagate the selected tab's input labels and output label.
+        int inMatrixPtr = idxClicked * TTLCONDTRIG_INPUTS;
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+            inputStatusPanel->setInputLabel(inIdx, inputLabels[inMatrixPtr + inIdx]);
+        inputStatusPanel->setOutputLabel(outputLabels[idxClicked]);
+
+        // Force a redraw, since many elements will otherwise be stale.
+        repaint();
+    }
 }
 
 

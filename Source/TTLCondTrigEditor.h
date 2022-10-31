@@ -66,7 +66,67 @@ namespace TTLConditionTrig
 	};
 
 
+
+
 	// GUI elements for configuring one output.
+	class TTLConditionalTriggerEditorOutputRow : public Component, Button::Listener
+	{
+	public:
+		TTLConditionalTriggerEditorOutputRow(TTLConditionalTriggerEditor *newParent, int newOutIdx);
+
+		void buttonClicked(Button* theButton);
+
+		void paint(Graphics& g);
+
+		void setOutputLabel(std::string newLabel);
+		void setLampState(bool wantLit);
+		void setTabColour(Colour newColour);
+		Colour getBackgroundColour();
+
+		void setRunningState(bool isRunning);
+		void setOutputEnabled(bool isEnabled);
+
+	protected:
+		TTLConditionalTriggerEditor *parent;
+		int outIdx;
+		Colour tabColourLight, tabColourDark, backColourLight, backColourDark;
+		Colour currentBackgroundColour;
+
+		ScopedPointer<Image> settingsImage;
+		ScopedPointer<Image> connectOnImage;
+		ScopedPointer<Image> connectOffImage;
+		ScopedPointer<Image> lampOnImage;
+		ScopedPointer<Image> lampOffImage;
+
+		ScopedPointer<ImageButton> settingsButton;
+		ScopedPointer<ImageButton> enableButton;
+		ScopedPointer<ColorButton> tabButton;
+
+		// It's less expensive to have two images and make only one visible than it is to change the image on one component.
+		ScopedPointer<ImageComponent> lampOnComponent;
+		ScopedPointer<ImageComponent> lampOffComponent;
+
+		ScopedPointer<Label> outputNameLabel;
+	};
+
+
+	// GUI panel for configuring a set of inputs associated with an output.
+	class TTLConditionalTriggerEditorOutputPanel : public Component
+	{
+	public:
+		TTLConditionalTriggerEditorOutputPanel(TTLConditionalTriggerEditor *newParent);
+
+		void setOutputLabel(int outIdx, std::string newLabel);
+		void setLampState(int outIdx, bool wantLit);
+		void setTabColour(int outIdx, Colour newColour);
+		Colour getBackgroundColour(int outIdx);
+
+		void setRunningState(bool isRunning);
+		void setOutputEnabled(int outIdx, bool isEnabled);
+
+	protected:
+		ScopedPointer<TTLConditionalTriggerEditorOutputRow> outputRows[TTLCONDTRIG_OUTPUTS];
+	};
 
 
 	// GUI tray for conditional trigger display and configuration.
@@ -102,6 +162,7 @@ namespace TTLConditionTrig
 		// Accessors for changing GUI state.
 		// These are called by input or output GUI widgets.
 		void clickedInputSettings(int idxClicked);
+		void clickedOutputEnableToggle(int idxClicked);
 		void clickedOutputSettings(int idxClicked);
 		void clickedOutputTab(int idxClicked);
 		void clickedConditionExit();
@@ -130,6 +191,7 @@ namespace TTLConditionTrig
 		// GUI elements.
 
 		ScopedPointer<TTLConditionalTriggerEditorInputPanel> inputStatusPanel;
+		ScopedPointer<TTLConditionalTriggerEditorOutputPanel> outputStatusPanel;
 //		ScopedPointer<Component> conditionEditPanel;
 
 		// FIXME - State information to render goes here.
