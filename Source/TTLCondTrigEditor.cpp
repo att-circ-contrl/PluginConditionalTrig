@@ -63,6 +63,10 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     settingsButton->setBounds(TTLCONDTRIG_INROW_XSIZE - TTLCONDTRIG_WRENCH_SIZE, 0, TTLCONDTRIG_WRENCH_SIZE, TTLCONDTRIG_WRENCH_SIZE);
     settingsButton->addListener(this);
     addAndMakeVisible(settingsButton);
+
+    // Force sane state.
+    setInputEnabled(false);
+    setRunningState(false);
 }
 
 
@@ -93,6 +97,17 @@ void TTLConditionalTriggerEditorInputRow::setRunningState(bool isRunning)
 {
     // Lock out the settings button if we're running.
     settingsButton->setEnabled(!isRunning);
+}
+
+
+void TTLConditionalTriggerEditorInputRow::setInputEnabled(bool isEnabled)
+{
+    // If we're not using this input, disable the text (to grey it out) and set an appropriate label.
+
+    if (!isEnabled)
+        setInputLabel("(unused)");
+
+    inputNameLabel->setEnabled(isEnabled);
 }
 
 
@@ -169,6 +184,13 @@ void TTLConditionalTriggerEditorInputPanel::setRunningState(bool isRunning)
 {
     for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         inputRows[inIdx]->setRunningState(isRunning);
+}
+
+
+void TTLConditionalTriggerEditorInputPanel::setInputEnabled(int inIdx, bool isEnabled)
+{
+    if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
+       inputRows[inIdx]->setInputEnabled(isEnabled);
 }
 
 

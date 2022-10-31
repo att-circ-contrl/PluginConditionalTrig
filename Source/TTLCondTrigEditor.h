@@ -22,6 +22,7 @@ namespace TTLConditionTrig
 		void setLampState(bool wantLit);
 
 		void setRunningState(bool isRunning);
+		void setInputEnabled(bool isEnabled);
 
 	protected:
 		TTLConditionalTriggerEditor *parent;
@@ -55,6 +56,7 @@ namespace TTLConditionTrig
 		void setFillColour(Colour newColour);
 
 		void setRunningState(bool isRunning);
+		void setInputEnabled(int inIdx, bool isEnabled);
 
 	protected:
 		Colour backgroundColour;
