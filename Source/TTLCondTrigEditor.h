@@ -139,21 +139,26 @@ namespace TTLConditionTrig
 		~TTLConditionalTriggerEditor();
 
 		// Plugin hooks.
-		// FIXME - UpdateSettings() goes here.
-		// We could alternatively get the channel list via push.
+		// We pull the list of TTL inputs here.
+		void updateSettings() override;
 
 		// Timer hooks.
 		void timerCallback();
 
+		// XML configuration hooks.
+		void saveCustomParameters(XmlElement* xml) override;
+		void loadCustomParameters(XmlElement* xml) override;
+
 		// Accessors.
 		// NOTE - The plugin has to push data to us, rather than us pulling it.
 		// Most of the config state only gets updated when not running. Output enable is the exception.
-
 		// NOTE - Pushing arguments by value rather than by reference to avoid multithreading issues.
-		void pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, std::string newLabel);
-		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs, std::string newLabel);
+		void pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig);
+		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs);
 		// NOTE - Passing arrays by value involves shenanigans, but the caller's arrays should persist until this call returns, so we'll be okay.
-		void pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS]);
+		void pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&cookedInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS]);
+		// NOTE - The plugin pulls label strings from us, since we generate them and they can't be pushed via setParameter().
+                std::string getOutputLabel(int outIdx);
 
 		// These are normally just called by the timer callback.
 		void doConfigStateRedraw();
@@ -178,7 +183,8 @@ namespace TTLConditionTrig
 		std::string outputLabels[TTLCONDTRIG_OUTPUTS];
 
 		// We also have a cached copy of the input and output.
-		bool inputLampState[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		bool inputRawLampState[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		bool inputCookedLampState[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		bool outputLampState[TTLCONDTRIG_OUTPUTS];
 
 		// GUI state variables.

@@ -27,11 +27,11 @@ namespace TTLConditionTrig
 	public:
 		// Configuration parameters. External editing is fine.
 		bool isEnabled;
-		int64 delay_min_samps, delay_max_samps;
-		int64 sustain_samps;
-		int64 dead_time_samps;
-		int64 deglitch_samps;
-		bool output_active_high;
+		int64 delayMinSamps, delayMaxSamps;
+		int64 sustainSamps;
+		int64 deadTimeSamps;
+		int64 deglitchSamps;
+		bool outputActiveHigh;
 		// Only valid for conditions on inputs.
 		int chanIdx;
 		int bitIdx;
@@ -58,8 +58,11 @@ namespace TTLConditionTrig
 		void setConfig(ConditionConfig &newConfig);
 		ConditionConfig getConfig();
 		void resetState();
-		void resetInput(int64 resetTime, bool resetInput);
+		// Lightweight enable query/toggle (vs having to check the full configuration).
+		bool isEnabled();
+		void setEnabled(bool wantEnabled);
 
+		void resetInput(int64 resetTime, bool newInput);
 		void handleInput(int64 inputTime, bool inputLevel);
 
 		bool hasPendingOutput();
@@ -67,10 +70,15 @@ namespace TTLConditionTrig
 		bool getNextOutputLevel();
                 void acknowledgeOutput();
 
+		// These are mostly to simplify display polling.
+		bool getLastInput();
+		bool getLastAcknowledgedOutput();
+
 	protected:
 		ConditionConfig config;
 		int64 prevInputTime;
 		bool prevInputLevel;
+		bool prevAcknowledgedOutput;
 		CircBuf<int64,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputTimes;
 		CircBuf<bool,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputLevels;
 	};
@@ -110,7 +118,8 @@ namespace TTLConditionTrig
 		// We need to do this indirectly for thread safety.
 
 		// This is a wrapper for setParameter.
-		void setParamByChan(int outputIdx, int inputIdx, int paramIdx, long newValue);
+		void setInputParamByChan(int outputIdx, int inputIdx, int paramIdx, long newValue);
+		void setOutputParamByChan(int outputIdx, int paramIdx, long newValue);
 
 		// This propagates state to the display.
 		// It's called by process() and can also be called manually.
@@ -125,9 +134,7 @@ namespace TTLConditionTrig
 		// This is the "need all"/"need any" switch for each output.
 		bool needAllInputs[TTLCONDTRIG_OUTPUTS];
 
-		// We're declared non-copyable, so internal dynamic allocation is fine for these.
-		std::string inputLabels[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
-		std::string outputLabels[TTLCONDTRIG_OUTPUTS];
+		// NOTE - The editor is responsible for labels. We don't cache them.
 
 	private:
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTrigger);

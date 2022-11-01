@@ -34,16 +34,16 @@ void ConditionConfig::clear()
 
     isEnabled = false;
 
-    delay_min_samps = 0;
-    delay_max_samps = 0;
+    delayMinSamps = 0;
+    delayMaxSamps = 0;
 
-    sustain_samps = 10;
+    sustainSamps = 10;
 
-    dead_time_samps = 100;
+    deadTimeSamps = 100;
 
-    deglitch_samps = 0;
+    deglitchSamps = 0;
 
-    output_active_high = true;
+    outputActiveHigh = true;
 
     chanIdx = 0;
     bitIdx = 0;
@@ -86,20 +86,37 @@ ConditionConfig ConditionProcessor::getConfig()
 }
 
 
-// This overwrites our record of the previous input levels without causing an event update.
-// This is used for initialization at the start of acquisition.
-void ConditionProcessor::resetInput(int64 resetTime, bool resetInput)
-{
-    prevInputTime = resetTime;
-    prevInputLevel = resetInput;
-}
-
-
 // State reset. This clears active events after a configuration change.
 void ConditionProcessor::resetState()
 {
     pendingOutputTimes.clear();
     pendingOutputLevels.clear();
+    prevAcknowledgedOutput = !(config.outputActiveHigh);
+}
+
+
+// Lightweight enable query/toggle accessors.
+
+bool ConditionProcessor::isEnabled()
+{
+    return config.isEnabled;
+}
+
+
+void ConditionProcessor::setEnabled(bool wantEnabled)
+{
+    config.isEnabled = wantEnabled;
+    // NOTE - We're clearing pending output state but keeping the record of previous input.
+    resetState();
+}
+
+
+// This overwrites our record of the previous input levels without causing an event update.
+// This is used for initialization at the start of acquisition.
+void ConditionProcessor::resetInput(int64 resetTime, bool newInput)
+{
+    prevInputTime = resetTime;
+    prevInputLevel = newInput;
 }
 
 
@@ -135,9 +152,27 @@ bool ConditionProcessor::getNextOutputLevel()
 // This removes the next queued output event, after we've read it.
 void ConditionProcessor::acknowledgeOutput()
 {
+    // Save whatever the last output was.
+    // This will return a safe value (false) if we don't have pending output.
+    prevAcknowledgedOutput = pendingOutputLevels.snoop();
+
     // Discard return values.
     pendingOutputTimes.dequeue();
     pendingOutputLevels.dequeue();
+}
+
+
+// Display polling accessors.
+
+bool ConditionProcessor::getLastInput()
+{
+    return prevInputLevel;
+}
+
+
+bool ConditionProcessor::getLastAcknowledgedOutput()
+{
+    return prevAcknowledgedOutput;
 }
 
 
@@ -150,17 +185,13 @@ TTLConditionalTrigger::TTLConditionalTrigger() : GenericProcessor("TTL Condition
 {
 T_PRINT("Constructor called.");
 
-#define SCRATCHSTRINGLEN 16
-char scratchbuf[SCRATCHSTRINGLEN];
-
     // NOTE - Per Josh, we need to set the processor type here in addition to
     // reporting it from getLibInfo().
     setProcessorType(PluginProcessorType::PROCESSOR_TYPE_FILTER);
 
 
     // Condition configs should already have been initialized by their constructors, but do it explicitly just to be safe.
-    // Labels should be set to reasonable default values here.
-    // Ditto output and/or switches.
+    // Ditto output "any vs all" switches.
 
     ConditionConfig dummyConfig;
     dummyConfig.clear();
@@ -174,19 +205,11 @@ char scratchbuf[SCRATCHSTRINGLEN];
 
         needAllInputs[outIdx] = true;
 
-        snprintf(scratchbuf, SCRATCHSTRINGLEN, "Output %c", 'A' + outIdx);
-        scratchbuf[SCRATCHSTRINGLEN-1] = 0;
-        outputLabels[outIdx] = scratchbuf;
-
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
             inputConditions[inMatrixPtr].setConfig(dummyConfig);
             inputConditions[inMatrixPtr].resetInput(0, false);
             inputConditions[inMatrixPtr].resetState();
-
-            snprintf(scratchbuf, SCRATCHSTRINGLEN, "Input %c%d", 'A' + outIdx, inIdx);
-            scratchbuf[SCRATCHSTRINGLEN-1] = 0;
-            inputLabels[inMatrixPtr] = scratchbuf;
 
             inMatrixPtr++;
         }
@@ -217,6 +240,11 @@ T_PRINT("Creating editor.");
 void TTLConditionalTrigger::updateSettings()
 {
 T_PRINT("udpateSettings() called.");
+
+    // Push input TTL geometry to the editor.
+
+    // Pull output TTL information from the editor.
+    // FIXME - We'd better hope it's safe to do this here! We can't send label strings through setParameter().
 
 // FIXME - updateSettings() NYI.
 // We need to get a list of inputs, pass them to the GUI, and specify our outputs.
@@ -250,10 +278,89 @@ void TTLConditionalTrigger::handleEvent(const EventChannel *eventInfo, const Mid
 void TTLConditionalTrigger::setParameter(int parameterIndex, float newValue)
 {
     long integerValue = (long) newValue;
+    bool booleanValue = (integerValue > 0);
 
 T_PRINT( "setParameter() called setting " << parameterIndex << " to: " << integerValue );
 
-// FIXME - setParameter() NYI.
+    // Map the raw parameter index back into multidimensional indices.
+    // The output configuration is treated as a set of extra inputs appended to the end of the virtual register file.
+
+    bool isInput = false;
+    bool isOutput = false;
+
+    int regIdx = 0;
+    int inIdx = 0;
+    int outIdx = 0;
+    int matrixIdx = 0;
+
+    if (parameterIndex >= 0)
+    {
+        regIdx = parameterIndex % TTLCONDTRIG_PARAM_STRIDE;
+        matrixIdx = (parameterIndex - regIdx) / TTLCONDTRIG_PARAM_STRIDE;
+        inIdx = matrixIdx % TTLCONDTRIG_INPUTS;
+        outIdx = (matrixIdx - inIdx) / TTLCONDTRIG_INPUTS;
+
+        if (outIdx < TTLCONDTRIG_OUTPUTS)
+            isInput = true;
+        else
+        {
+            // This should be one of the appended output configurations, but do a range check just in case.
+            matrixIdx -= TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS;
+            inIdx = 0;
+            outIdx = matrixIdx;
+            isOutput = (outIdx < TTLCONDTRIG_OUTPUTS);
+        }
+    }
+
+T_PRINT("Got regIdx " << regIdx << ", inIdx " << inIdx << ", outIdx " << outIdx << ", matrixIdx " << matrixIdx << ".");
+
+    // FIXME - Make it easier to debug screwups.
+    if ( (regIdx < 0) || (regIdx >= TTLCONDTRIG_PARAM_STRIDE) || (inIdx < 0) || (inIdx >= TTLCONDTRIG_INPUTS) || (outIdx < 0) || (outIdx >= TTLCONDTRIG_OUTPUTS) || (matrixIdx < 0) || (matrixIdx >= (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS)) )
+    {
+T_PRINT("###  Indices out of range! Bailing out.");
+        return;
+    }
+
+
+    // Update the requested configuration.
+    // NOTE - We could special-case "enable" and call the lightweight accessor, but since that's triggered by a button click, it really isn't a big deal to do it with a full config read/write.
+
+    ConditionConfig thisConfig;
+
+    if (isInput)
+        thisConfig = inputConditions[matrixIdx].getConfig();
+    else if (isOutput)
+        thisConfig = outputConditions[outIdx].getConfig();
+
+    switch(regIdx)
+    {
+    case TTLCONDTRIG_PARAM_IS_ENABLED:
+        thisConfig.isEnabled = booleanValue; break;
+    case TTLCONDTRIG_PARAM_CHAN_IDX:
+        thisConfig.chanIdx = integerValue; break;
+    case TTLCONDTRIG_PARAM_BIT_IDX:
+        thisConfig.bitIdx = integerValue; break;
+    case TTLCONDTRIG_PARAM_DELAY_MIN:
+        thisConfig.delayMinSamps = integerValue; break;
+    case TTLCONDTRIG_PARAM_DELAY_MAX:
+        thisConfig.delayMaxSamps = integerValue; break;
+    case TTLCONDTRIG_PARAM_SUSTAIN:
+        thisConfig.sustainSamps = integerValue; break;
+    case TTLCONDTRIG_PARAM_DEADTIME:
+        thisConfig.deadTimeSamps = integerValue; break;
+    case TTLCONDTRIG_PARAM_DEGLITCH:
+        thisConfig.deglitchSamps = integerValue; break;
+    case TTLCONDTRIG_PARAM_OUTSENSE:
+        thisConfig.outputActiveHigh = booleanValue; break;
+    default:
+        break;
+    }
+
+
+    if (isInput)
+        inputConditions[matrixIdx].setConfig(thisConfig);
+    else if (isOutput)
+        outputConditions[matrixIdx].setConfig(thisConfig);
 }
 
 
@@ -276,15 +383,28 @@ T_PRINT("loadCustomParametersFromXml() called.");
 }
 
 
-// Accessor for modifying state.
+// Accessor for modifying input configuration state.
 // This is a wrapper for setParameter.
-void TTLConditionalTrigger::setParamByChan(int outputIdx, int inputIdx, int paramIdx, long newValue)
+void TTLConditionalTrigger::setInputParamByChan(int outputIdx, int inputIdx, int paramIdx, long newValue)
 {
-  int packedIdx = paramIdx;
-  packedIdx += inputIdx * TTLCONDTRIG_PARAM_STRIDE_INPUT;
-  packedIdx += outputIdx * TTLCONDTRIG_PARAM_STRIDE_OUTPUT;
+    int packedIdx = paramIdx;
+    packedIdx += inputIdx * TTLCONDTRIG_PARAM_STRIDE_INPUT;
+    packedIdx += outputIdx * TTLCONDTRIG_PARAM_STRIDE_OUTPUT;
 
-  setParameter(packedIdx, newValue);
+    setParameter(packedIdx, newValue);
+}
+
+
+// Accessor for modifying output configuration state.
+// This is a wrapper for setParameter.
+void TTLConditionalTrigger::setOutputParamByChan(int outputIdx, int paramIdx, long newValue)
+{
+    int packedIdx = paramIdx;
+    // The output configuration is treated as a set of inputs appended to the end of the virtual register file.
+    packedIdx += outputIdx * TTLCONDTRIG_PARAM_STRIDE_INPUT;
+    packedIdx += TTLCONDTRIG_OUTPUTS * TTLCONDTRIG_PARAM_STRIDE_OUTPUT;
+
+    setParameter(packedIdx, newValue);
 }
 
 
@@ -307,10 +427,10 @@ void TTLConditionalTrigger::pushStateToDisplay()
         int inMatrixPtr = 0;
         for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
         {
-            theEditor->pushOutputConfigToEditor(outIdx, outputConditions[outIdx].getConfig(), needAllInputs[outIdx], outputLabels[outIdx]);
+            theEditor->pushOutputConfigToEditor(outIdx, outputConditions[outIdx].getConfig(), needAllInputs[outIdx]);
             for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
             {
-                theEditor->pushInputConfigToEditor(inMatrixPtr, inputConditions[inMatrixPtr].getConfig(), inputLabels[inMatrixPtr]);
+                theEditor->pushInputConfigToEditor(inMatrixPtr, inputConditions[inMatrixPtr].getConfig());
                 inMatrixPtr++;
             }
         }
@@ -318,10 +438,35 @@ void TTLConditionalTrigger::pushStateToDisplay()
 
     // Always propagate running state.
 
-// FIXME - pushStateToDisplay() running state NYI.
-// We need the most recent input and output state, and the enabled state.
-// We can pull input and enabled from the condition objects.
-// Output state needs to be saved by the event handler (unless we cache it in the objects).
+    bool rawInputs[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+    bool cookedInputs[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+    bool outputState[TTLCONDTRIG_OUTPUTS];
+    bool outputsEnabled[TTLCONDTRIG_OUTPUTS];
+
+    int inMatrixPtr = 0;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputState[outIdx] = outputConditions[outIdx].getLastAcknowledgedOutput();
+        outputsEnabled[outIdx] = outputConditions[outIdx].isEnabled();
+
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        {
+            // NOTE - These are unconfigured defaults (no channel, active-high).
+            // FIXME - A configured but disabled input _should_ show the input TTL value and, if active-_low_, a high output. But we can't easily test whether an input was ever configured.
+            rawInputs[inMatrixPtr] = false;
+            cookedInputs[inMatrixPtr] = false;
+
+            if (inputConditions[inMatrixPtr].isEnabled())
+            {
+                rawInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastInput();
+                cookedInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastAcknowledgedOutput();
+            }
+
+            inMatrixPtr++;
+        }
+    }
+
+    theEditor->pushRunningStateToEditor(rawInputs, cookedInputs, outputState, outputsEnabled);
 }
 
 

@@ -419,12 +419,12 @@ void TTLConditionalTriggerEditorOutputPanel::setTabColour(int outIdx, Colour new
 
 Colour TTLConditionalTriggerEditorOutputPanel::getBackgroundColour(int outIdx)
 {
-    Colour retval = COLOUR_BOGUS;
+    Colour retVal = COLOUR_BOGUS;
 
     if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
-        retval = outputRows[outIdx]->getBackgroundColour();
+        retVal = outputRows[outIdx]->getBackgroundColour();
 
-    return retval;
+    return retVal;
 }
 
 
@@ -546,6 +546,15 @@ TTLConditionalTriggerEditor::~TTLConditionalTriggerEditor()
 }
 
 
+// Signal chain update hook.
+// We pull the list of TTL channels here.
+void TTLConditionalTriggerEditor::updateSettings()
+{
+T_PRINT("updateSettings() called.");
+// FIXME - updateSettings() NYI.
+}
+
+
 // Timer callback.
 void TTLConditionalTriggerEditor::timerCallback()
 {
@@ -575,32 +584,48 @@ void TTLConditionalTriggerEditor::timerCallback()
 }
 
 
+// XML configuration saving.
+// The only thing the editor is responsible for is input and output labels.
+void TTLConditionalTriggerEditor::saveCustomParameters(XmlElement* xml)
+{
+T_PRINT("saveCustomParameters() called.");
+
+// FIXME - saveCustomParameters() NYI.
+}
+
+
+// XML configuration loading.
+// The only thing the editor is responsible for is input and output labels.
+void TTLConditionalTriggerEditor::loadCustomParameters(XmlElement* xml)
+{
+T_PRINT("loadCustomParameters() called.");
+
+// FIXME - loadCustomParameters() NYI.
+}
+
+
 // Accessor to push input configuration state to the editor.
-void TTLConditionalTriggerEditor::pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, std::string newLabel)
+void TTLConditionalTriggerEditor::pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig)
 {
     if ( (inMatrixIdx >= 0) && (inMatrixIdx < (TTLCONDTRIG_INPUTS*TTLCONDTRIG_OUTPUTS)) )
-    {
         inputConfig[inMatrixIdx] = newConfig;
-        inputLabels[inMatrixIdx] = newLabel;
-    }
 }
 
 
 // Accessor to push output configuration state to the editor.
-void TTLConditionalTriggerEditor::pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs, std::string newLabel)
+void TTLConditionalTriggerEditor::pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs)
 {
     if ( (outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS) )
     {
         outputConfig[outIdx] = newConfig;
         needAllInputs[outIdx] = newNeedAllInputs;
-        outputLabels[outIdx] = newLabel;
     }
 }
 
 
 // Accessor to push monitoring state (and output enable) to the editor.
 // NOTE - Passing arrays by value involves shenanigans, but the caller's arrays should persist until this call returns, so we'll be okay.
-void TTLConditionalTriggerEditor::pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS])
+void TTLConditionalTriggerEditor::pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&cookedInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS])
 {
     // Copy enable (configuration) and I/O state (lamp state).
     int inMatrixPtr = 0;
@@ -611,10 +636,24 @@ void TTLConditionalTriggerEditor::pushRunningStateToEditor(bool (&rawInputs)[TTL
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
-            inputLampState[inMatrixPtr] = rawInputs[inMatrixPtr];
+            inputRawLampState[inMatrixPtr] = rawInputs[inMatrixPtr];
+            inputCookedLampState[inMatrixPtr] = cookedInputs[inMatrixPtr];
             inMatrixPtr++;
         }
     }
+}
+
+
+// Accessor to let the plugin pull output labels.
+// NOTE - We'd better hope this is safe! We can't push strings via setParameter().
+std::string TTLConditionalTriggerEditor::getOutputLabel(int outIdx)
+{
+    std::string retVal = "";
+
+    if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+        retVal = outputLabels[outIdx];
+
+    return retVal;
 }
 
 
@@ -657,6 +696,7 @@ T_PRINT("clickedOutputEnableToggle() called for output " << idxClicked << ".");
         bool newEnabled = !outputConfig[idxClicked].isEnabled;
 T_PRINT("Setting output enable for " << idxClicked << " to " << newEnabled << ".");
 
+        parent->setOutputParamByChan(idxClicked, TTLCONDTRIG_PARAM_IS_ENABLED, (newEnabled ? 1 : 0));
 // FIXME - Placeholder. Should do this through the plugin.
 outputConfig[idxClicked].isEnabled = newEnabled;
         outputStatusPanel->setOutputEnabled(idxClicked, newEnabled);
