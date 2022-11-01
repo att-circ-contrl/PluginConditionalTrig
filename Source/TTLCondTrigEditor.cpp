@@ -27,25 +27,28 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     parent = newParent;
     inIdx = newInIdx;
 
-    // Indicator lamp icon.
+    // Indicator lamp images.
+    lampGreenImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
+    lampAmberImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_AMBER_FILL, LAMP_AMBER_HIGHLIGHT);
+    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+
+    // Raw input indicator lamp icon.
     // It's less expensive to have two images and make only one visible than it is to change the image on one component.
 
-    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_ON_FILL, LAMP_ON_HIGHLIGHT);
-    lampOnComponent = new ImageComponent();
-    lampOnComponent->setImage(*lampOnImage);
+    lampGreenOnComponent = new ImageComponent();
+    lampGreenOnComponent->setImage(*lampGreenImage);
 
-    lampOnComponent->setBounds(0, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
-    addAndMakeVisible(lampOnComponent);
-    lampOnComponent->setEnabled(false);
-    lampOnComponent->setVisible(false);
+    lampGreenOnComponent->setBounds(0, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampGreenOnComponent);
+    lampGreenOnComponent->setEnabled(false);
+    lampGreenOnComponent->setVisible(false);
 
-    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
-    lampOffComponent = new ImageComponent();
-    lampOffComponent->setImage(*lampOffImage);
+    lampGreenOffComponent = new ImageComponent();
+    lampGreenOffComponent->setImage(*lampOffImage);
 
-    lampOffComponent->setBounds(0, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
-    addAndMakeVisible(lampOffComponent);
-    lampOffComponent->setEnabled(false);
+    lampGreenOffComponent->setBounds(0, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampGreenOffComponent);
+    lampGreenOffComponent->setEnabled(false);
 
     // Input name label.
     inputNameLabel = new Label("Input Name", "undefined");
@@ -60,9 +63,27 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     // Images are normal, hover-over, and pressed.
     // Tuples are image, image opacity, and overlay colour.
     settingsButton->setImages(true, true, true, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 1.0, COLOUR_TRANSPARENT, *settingsImage, 0.5, COLOUR_TRANSPARENT);
-    settingsButton->setBounds(TTLCONDTRIG_INROW_XSIZE - TTLCONDTRIG_WRENCH_SIZE, 0, TTLCONDTRIG_WRENCH_SIZE, TTLCONDTRIG_WRENCH_SIZE);
+    settingsButton->setBounds(TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_XGAP*2, 0, TTLCONDTRIG_WRENCH_SIZE, TTLCONDTRIG_WRENCH_SIZE);
     settingsButton->addListener(this);
     addAndMakeVisible(settingsButton);
+
+    // Cooked input indicator lamp icon.
+    // It's less expensive to have two images and make only one visible than it is to change the image on one component.
+
+    lampAmberOnComponent = new ImageComponent();
+    lampAmberOnComponent->setImage(*lampAmberImage);
+
+    lampAmberOnComponent->setBounds(TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_WRENCH_SIZE + TTLCONDTRIG_XGAP*3, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampAmberOnComponent);
+    lampAmberOnComponent->setEnabled(false);
+    lampAmberOnComponent->setVisible(false);
+
+    lampAmberOffComponent = new ImageComponent();
+    lampAmberOffComponent->setImage(*lampOffImage);
+
+    lampAmberOffComponent->setBounds(TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_WRENCH_SIZE + TTLCONDTRIG_XGAP*3, 0, TTLCONDTRIG_LAMP_SIZE, TTLCONDTRIG_LAMP_SIZE);
+    addAndMakeVisible(lampAmberOffComponent);
+    lampAmberOffComponent->setEnabled(false);
 
     // Force sane state.
     setInputEnabled(false);
@@ -86,10 +107,17 @@ void TTLConditionalTriggerEditorInputRow::setInputLabel(std::string newLabel)
 }
 
 
-void TTLConditionalTriggerEditorInputRow::setLampState(bool wantLit)
+void TTLConditionalTriggerEditorInputRow::setRawLampState(bool wantLit)
 {
-    lampOnComponent->setVisible(wantLit);
-    lampOffComponent->setVisible(!wantLit);
+    lampGreenOnComponent->setVisible(wantLit);
+    lampGreenOffComponent->setVisible(!wantLit);
+}
+
+
+void TTLConditionalTriggerEditorInputRow::setCookedLampState(bool wantLit)
+{
+    lampAmberOnComponent->setVisible(wantLit);
+    lampAmberOffComponent->setVisible(!wantLit);
 }
 
 
@@ -166,10 +194,17 @@ void TTLConditionalTriggerEditorInputPanel::setInputLabel(int inIdx, std::string
 }
 
 
-void TTLConditionalTriggerEditorInputPanel::setLampState(int inIdx, bool wantLit)
+void TTLConditionalTriggerEditorInputPanel::setRawLampState(int inIdx, bool wantLit)
 {
     if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
-        inputRows[inIdx]->setLampState(wantLit);
+        inputRows[inIdx]->setRawLampState(wantLit);
+}
+
+
+void TTLConditionalTriggerEditorInputPanel::setCookedLampState(int inIdx, bool wantLit)
+{
+    if ((inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
+        inputRows[inIdx]->setCookedLampState(wantLit);
 }
 
 
@@ -236,7 +271,7 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     // Indicator lamp icon.
     // It's less expensive to have two images and make only one visible than it is to change the image on one component.
 
-    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_ON_FILL, LAMP_ON_HIGHLIGHT);
+    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
     lampOnComponent = new ImageComponent();
     lampOnComponent->setImage(*lampOnImage);
 

@@ -19,7 +19,8 @@ namespace TTLConditionTrig
 		void buttonClicked(Button* theButton);
 
 		void setInputLabel(std::string newLabel);
-		void setLampState(bool wantLit);
+		void setRawLampState(bool wantLit);
+		void setCookedLampState(bool wantLit);
 
 		void setRunningState(bool isRunning);
 		void setInputEnabled(bool isEnabled);
@@ -29,14 +30,17 @@ namespace TTLConditionTrig
 		int inIdx;
 
 		ScopedPointer<Image> settingsImage;
-		ScopedPointer<Image> lampOnImage;
+		ScopedPointer<Image> lampGreenImage;
+		ScopedPointer<Image> lampAmberImage;
 		ScopedPointer<Image> lampOffImage;
 
 		ScopedPointer<ImageButton> settingsButton;
 
 		// It's less expensive to have two images and make only one visible than it is to change the image on one component.
-		ScopedPointer<ImageComponent> lampOnComponent;
-		ScopedPointer<ImageComponent> lampOffComponent;
+		ScopedPointer<ImageComponent> lampGreenOnComponent;
+		ScopedPointer<ImageComponent> lampGreenOffComponent;
+		ScopedPointer<ImageComponent> lampAmberOnComponent;
+		ScopedPointer<ImageComponent> lampAmberOffComponent;
 
 		ScopedPointer<Label> inputNameLabel;
 	};
@@ -52,7 +56,8 @@ namespace TTLConditionTrig
 
 		void setOutputLabel(std::string newLabel);
 		void setInputLabel(int inIdx, std::string newLabel);
-		void setLampState(int inIdx, bool wantLit);
+		void setRawLampState(int inIdx, bool wantLit);
+		void setCookedLampState(int inIdx, bool wantLit);
 		void setFillColour(Colour newColour);
 
 		void setRunningState(bool isRunning);

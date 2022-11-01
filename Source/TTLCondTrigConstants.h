@@ -42,7 +42,7 @@
 #define TTLCONDTRIG_BOOLBUTTON_XSIZE 20
 #define TTLCONDTRIG_BOOLBUTTON_YSIZE (TTLCONDTRIG_YSIZE * 2 + TTLCONDTRIG_YGAP)
 
-#define TTLCONDTRIG_INROW_XSIZE (TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_WRENCH_SIZE)
+#define TTLCONDTRIG_INROW_XSIZE (TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_WRENCH_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_LAMP_SIZE)
 #define TTLCONDTRIG_INPANEL_XSIZE (TTLCONDTRIG_XGAP + TTLCONDTRIG_INROW_XSIZE + TTLCONDTRIG_XGAP)
 #define TTLCONDTRIG_INPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
 
@@ -68,13 +68,15 @@
 
 #define LAMP_BACKGROUND juce::Colours::transparentWhite
 #define LAMP_OUTLINE juce::Colours::black
-#define LAMP_ON_FILL juce::Colours::lightgreen
-#define LAMP_ON_HIGHLIGHT juce::Colours::white
+#define LAMP_GREEN_FILL juce::Colours::lightgreen
+#define LAMP_GREEN_HIGHLIGHT juce::Colours::white
+#define LAMP_AMBER_FILL juce::Colours::gold
+#define LAMP_AMBER_HIGHLIGHT juce::Colours::white
 #define LAMP_OFF_FILL juce::Colours::darkgrey
 #define LAMP_OFF_HIGHLIGHT juce::Colours::grey
 
 // This needs as many entries as we have outputs.
-#define OUTPUT_COLOUR_LIST { juce::Colours::salmon, juce::Colours::goldenrod, juce::Colours::seagreen, juce::Colours::steelblue }
+#define OUTPUT_COLOUR_LIST { juce::Colours::darksalmon, juce::Colours::goldenrod, juce::Colours::seagreen, juce::Colours::steelblue }
 
 
 #endif
