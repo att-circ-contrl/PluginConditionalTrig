@@ -102,6 +102,25 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     // Process input events.
     checkForEvents();
 
+// FIXME: Generate a test pattern.
+// This generates phantom input events.
+#if 1
+    int64 thisTimeSamples = CoreServices::getGlobalTimestamp();
+    int64 sampRate = (int64) CoreServices::getGlobalSampleRate();
+
+    // We want to sweep 16 inputs in 2 seconds. So, 1/8 sec. quantum.
+    int64 thisTimeTicks = (thisTimeSamples * 8) / sampRate;
+    // Turn each set of inputs on, then off.
+    thisTimeTicks %= 2 * TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS;
+    int outIdx = thisTimeTicks / (2*TTLCONDTRIG_INPUTS);
+    int inIdx = thisTimeTicks % (2*TTLCONDTRIG_INPUTS);
+    bool wantRaise = ( inIdx < TTLCONDTRIG_INPUTS );
+    inIdx %= TTLCONDTRIG_INPUTS;
+    int inMatrixIdx = inIdx + outIdx * TTLCONDTRIG_INPUTS;
+
+    inputConditions[inMatrixIdx].handleInput(thisTimeSamples, wantRaise);
+#endif
+
     // Now that all of these have been processed, generate output events in temporal order.
 // FIXME - process() event generation NYI.
 

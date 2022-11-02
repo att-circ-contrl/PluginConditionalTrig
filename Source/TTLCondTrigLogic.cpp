@@ -91,6 +91,10 @@ void ConditionProcessor::resetInput(int64 resetTime, bool newInput)
 void ConditionProcessor::handleInput(int64 inputTime, bool inputLevel)
 {
 // FIXME - handleInput NYI.
+
+    // Update the "last input seen" record.
+    prevInputTime = inputTime;
+    prevInputLevel = inputLevel;
 }
 
 
