@@ -619,12 +619,12 @@ void TTLConditionalTriggerEditor::timerCallback()
     if (!acquisitionIsActive)
         parent->pushStateToDisplay();
 
-    // Only fully redraw configuration state when we're not running.
-    if (!acquisitionIsActive)
-        doConfigStateRedraw();
+    // Reconfigure elements that are updated while running.
+    // Everything else gets updated elsewhere.
+    propagateRunningElementConfig();
 
-    // Always redraw the elements that are updated while running.
-    doRunningStateRedraw();
+    // Force a redraw here, rather than in half a dozen "user clicked something" functions.
+    repaint();
 }
 
 
@@ -707,22 +707,49 @@ std::string TTLConditionalTriggerEditor::getOutputLabel(int outIdx)
 }
 
 
-// Redraw function. Should be called from the timer, not the plugin.
-// This redraws all configuration-sensitive elements.
-void TTLConditionalTriggerEditor::doConfigStateRedraw()
+// This updates configuration of elements that change while running.
+// The timer callback calls this.
+void TTLConditionalTriggerEditor::propagateRunningElementConfig()
 {
-// FIXME - doConfigStateRedraw() NYI.
+    // Elements that are updated are input and output lamp states and output enable toggles.
+
+    int inMatrixPtr = outputSelectIdx * TTLCONDTRIG_INPUTS;
+    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+    {
+        inputStatusPanel->setRawLampState(inIdx, inputRawLampState[inMatrixPtr]);
+        inputStatusPanel->setCookedLampState(inIdx, inputCookedLampState[inMatrixPtr]);
+        inMatrixPtr++;
+    }
+
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputStatusPanel->setLampState(outIdx, outputLampState[outIdx]);
+        outputStatusPanel->setOutputEnabled(outIdx, isOutputEnabled[outIdx]);
+    }
 }
 
 
-// Redraw function. Should be called from the timer, not the plugin.
-// This only redraws elements that are visible/accessible while running.
-void TTLConditionalTriggerEditor::doRunningStateRedraw()
+// This updates non-running configuration for the input pane. Mostly this happens when an output tab is clicked, but it'll also reflect label changes.
+void TTLConditionalTriggerEditor::propagateInputPaneConfig()
 {
-// FIXME - doRunningStateRedraw() NYI.
+    inputStatusPanel->setFillColour(outputStatusPanel->getBackgroundColour(outputSelectIdx));
 
-    // Force a manual repaint. Otherwise the tab ColorButton objects don't change with mouse focus.
-//    repaint();
+    int inMatrixPtr = outputSelectIdx * TTLCONDTRIG_INPUTS;
+    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+    {
+        inputStatusPanel->setInputLabel(inIdx, inputLabels[inMatrixPtr]);
+        inMatrixPtr++;
+    }
+
+    inputStatusPanel->setOutputLabel(outputLabels[outputSelectIdx]);
+}
+
+
+// This updates non-running configuration for the output pane. Mostly this reflects label changes.
+void TTLConditionalTriggerEditor::propagateOutputPaneConfig()
+{
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        outputStatusPanel->setOutputLabel(outIdx, outputLabels[outIdx]);
 }
 
 
@@ -748,7 +775,7 @@ T_PRINT("Setting output enable for " << idxClicked << " to " << newEnabled << ".
 
         parent->setOutputParamByChan(idxClicked, TTLCONDTRIG_PARAM_IS_ENABLED, (newEnabled ? 1 : 0));
         // This will get updated during the next poll, but do it now as well to avoid visible delay.
-        outputStatusPanel->setOutputEnabled(idxClicked, newEnabled);
+//        outputStatusPanel->setOutputEnabled(idxClicked, newEnabled);
     }
 }
 
@@ -769,16 +796,7 @@ T_PRINT("clickedOutputTab() called for output " << idxClicked << ".");
     if ((idxClicked >= 0) && (idxClicked < TTLCONDTRIG_OUTPUTS))
     {
         outputSelectIdx = idxClicked;
-        inputStatusPanel->setFillColour(outputStatusPanel->getBackgroundColour(idxClicked));
-
-        // Propagate the selected tab's input labels and output label.
-        int inMatrixPtr = idxClicked * TTLCONDTRIG_INPUTS;
-        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
-            inputStatusPanel->setInputLabel(inIdx, inputLabels[inMatrixPtr + inIdx]);
-        inputStatusPanel->setOutputLabel(outputLabels[idxClicked]);
-
-        // Force a redraw, since many elements will otherwise be stale.
-        repaint();
+        propagateInputPaneConfig();
     }
 }
 

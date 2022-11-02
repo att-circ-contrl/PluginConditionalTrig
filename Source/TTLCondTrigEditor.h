@@ -165,9 +165,10 @@ namespace TTLConditionTrig
 		// NOTE - The plugin pulls label strings from us, since we generate them and they can't be pushed via setParameter().
                 std::string getOutputLabel(int outIdx);
 
-		// These are normally just called by the timer callback.
-		void doConfigStateRedraw();
-		void doRunningStateRedraw();
+		// These may be called by the timer callback or after GUI events that change configuration.
+		void propagateRunningElementConfig();
+		void propagateInputPaneConfig();
+		void propagateOutputPaneConfig();
 
 		// Accessors for changing GUI state.
 		// These are called by input or output GUI widgets.
