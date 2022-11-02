@@ -7,10 +7,10 @@ using namespace TTLConditionTrig;
 //
 // Wrench image definition.
 
-#define WRENCH_WIDTH 16
-#define WRENCH_HEIGHT 16
+#define WRENCH16_WIDTH 16
+#define WRENCH16_HEIGHT 16
 
-const char wrenchpicture[WRENCH_WIDTH*WRENCH_HEIGHT] =
+const char wrench16picture[WRENCH16_WIDTH*WRENCH16_HEIGHT] =
 { ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
   ' ',' ',' ',' ',' ',' ',' ',' ','#','#','#','#',' ',' ',' ',' ',
   ' ',' ',' ',' ',' ',' ',' ','#','#','#','#',' ',' ',' ',' ',' ',
@@ -32,31 +32,10 @@ const char wrenchpicture[WRENCH_WIDTH*WRENCH_HEIGHT] =
 //
 // "Connected" image definition.
 
-#define CONN_WIDTH 16
-#define CONN_HEIGHT 16
+#define CONN16_WIDTH 16
+#define CONN16_HEIGHT 16
 
-const char connectedpictureold[CONN_WIDTH*CONN_HEIGHT] =
-{ ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-
-  ' ',' ',' ',' ',' ','x','x','x','x','x','x',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ','x',' ','x','x','x','x',' ',' ',' ',' ',' ',
-  'x','x','x','x','x','x',' ','x','x','x','x','x','x','x','x','x',
-
-  'x','x','x','x','x','x',' ','x','x','x','x','x','x','x','x','x',
-  ' ',' ',' ',' ',' ','x',' ','x','x','x','x',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ','x','x','x','x','x','x',' ',' ',' ',' ',' ',
-
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ' };
-
-const char connectedpicture[CONN_WIDTH*CONN_HEIGHT] =
+const char connected16picture[CONN16_WIDTH*CONN16_HEIGHT] =
 { ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
@@ -81,31 +60,10 @@ const char connectedpicture[CONN_WIDTH*CONN_HEIGHT] =
 //
 // "Disconnected" image definition.
 
-#define DISCONN_WIDTH 16
-#define DISCONN_HEIGHT 16
+#define DISCONN16_WIDTH 16
+#define DISCONN16_HEIGHT 16
 
-const char disconnectedpictureold[DISCONN_WIDTH*DISCONN_HEIGHT] =
-{ ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-
-  ' ',' ','x','x','x','x','x','x',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ','x',' ',' ',' ',' ',' ',' ',' ','x','x','x','x',' ',' ',
-  'x','x','x',' ',' ',' ',' ',' ',' ',' ','x','x','x','x','x','x',
-
-  'x','x','x',' ',' ',' ',' ',' ',' ',' ','x','x','x','x','x','x',
-  ' ',' ','x',' ',' ',' ',' ',' ',' ',' ','x','x','x','x',' ',' ',
-  ' ',' ','x',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ','x','x','x','x','x','x',' ',' ',' ',' ',' ',' ',' ',' ',
-
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ' };
-
-const char disconnectedpicture[DISCONN_WIDTH*DISCONN_HEIGHT] =
+const char disconnected16picture[DISCONN16_WIDTH*DISCONN16_HEIGHT] =
 { ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
@@ -130,10 +88,10 @@ const char disconnectedpicture[DISCONN_WIDTH*DISCONN_HEIGHT] =
 //
 // Indicator lamp image definition.
 
-#define LAMP_WIDTH 16
-#define LAMP_HEIGHT 16
+#define LAMP16_WIDTH 16
+#define LAMP16_HEIGHT 16
 
-const char lamppicture[LAMP_WIDTH*LAMP_HEIGHT] =
+const char lamp16picture[LAMP16_WIDTH*LAMP16_HEIGHT] =
 { 'b','b','b','b','b','b',' ',' ',' ',' ','b','b','b','b','b','b',
   'b','b','b','b',' ',' ',' ',' ',' ',' ',' ',' ','b','b','b','b',
   'b','b',' ',' ',' ',' ','l','l','l','l',' ',' ',' ',' ','b','b',
@@ -201,19 +159,19 @@ IconPalette::IconPalette(int width, int height, const char *pixels, Colour defau
 
 // NOTE - If image dimensions don't match image pixel buffer size, bad things will happen. Use caution.
 
-WrenchImage::WrenchImage(Colour bgcolour, Colour fgcolour) : IconMonochrome(WRENCH_WIDTH, WRENCH_HEIGHT, wrenchpicture, bgcolour, fgcolour)
+Wrench16Image::Wrench16Image(Colour bgcolour, Colour fgcolour) : IconMonochrome(WRENCH16_WIDTH, WRENCH16_HEIGHT, wrench16picture, bgcolour, fgcolour)
 {
     // Nothing else to do.
 }
 
 
-ConnectedImage::ConnectedImage(Colour bgcolour, Colour fgcolour) : IconMonochrome(CONN_WIDTH, CONN_HEIGHT, connectedpicture, bgcolour, fgcolour)
+Connected16Image::Connected16Image(Colour bgcolour, Colour fgcolour) : IconMonochrome(CONN16_WIDTH, CONN16_HEIGHT, connected16picture, bgcolour, fgcolour)
 {
     // Nothing else to do.
 }
 
 
-DisconnectedImage::DisconnectedImage(Colour bgcolour, Colour fgcolour) : IconMonochrome(DISCONN_WIDTH, DISCONN_HEIGHT, disconnectedpicture, bgcolour, fgcolour)
+Disconnected16Image::Disconnected16Image(Colour bgcolour, Colour fgcolour) : IconMonochrome(DISCONN16_WIDTH, DISCONN16_HEIGHT, disconnected16picture, bgcolour, fgcolour)
 {
     // Nothing else to do.
 }
@@ -226,8 +184,8 @@ DisconnectedImage::DisconnectedImage(Colour bgcolour, Colour fgcolour) : IconMon
 
 // NOTE - We're building maps on the fly using C++11 initializers. This is compact but might not be supported by all compilers.
 
-IndicatorLampImage::IndicatorLampImage(Colour bgcolour, Colour outlinecolour, Colour lampcolour, Colour highlightcolour)
-    : IconPalette( LAMP_WIDTH, LAMP_HEIGHT, lamppicture, bgcolour,
+IndicatorLamp16Image::IndicatorLamp16Image(Colour bgcolour, Colour outlinecolour, Colour lampcolour, Colour highlightcolour)
+    : IconPalette( LAMP16_WIDTH, LAMP16_HEIGHT, lamp16picture, bgcolour,
         {{' ',outlinecolour},{'l',lampcolour},{'#',highlightcolour}} )
 {
     // Nothing else to do.

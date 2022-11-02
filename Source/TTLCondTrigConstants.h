@@ -2,6 +2,11 @@
 #define TTLCONDTRIGCONSTANTS_H_DEFINED
 
 
+// Magic constants for logic.
+#define TTLCONDTRIG_CHANIDX_NONE (-1)
+#define TTLCONDTRIG_BITIDX_NONE (-1)
+
+
 // Magic constants for parameter indices.
 // Making this an enum isn't any cleaner, since we aren't guaranteed sequential values.
 #define TTLCONDTRIG_PARAM_IS_ENABLED 0

@@ -158,8 +158,8 @@ namespace TTLConditionTrig
 		// NOTE - The plugin has to push data to us, rather than us pulling it.
 		// Most of the config state only gets updated when not running. Output enable is the exception.
 		// NOTE - Pushing arguments by value rather than by reference to avoid multithreading issues.
-		void pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig);
-		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs);
+		void pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, bool wantEnabled, int newChanIdx, int newBitIdx);
+		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool wantEnabled, bool newNeedAllInputs);
 		// NOTE - Passing arrays by value involves shenanigans, but the caller's arrays should persist until this call returns, so we'll be okay.
 		void pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&cookedInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS]);
 		// NOTE - The plugin pulls label strings from us, since we generate them and they can't be pushed via setParameter().
@@ -183,7 +183,12 @@ namespace TTLConditionTrig
 		// We have our own local copies of configuration state.
 		ConditionConfig inputConfig[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		ConditionConfig outputConfig[TTLCONDTRIG_OUTPUTS];
+		bool isInputEnabled[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		int inputChanIdx[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		int inputBitIdx[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		bool isOutputEnabled[TTLCONDTRIG_OUTPUTS];
 		bool needAllInputs[TTLCONDTRIG_OUTPUTS];
+		// We have the master copies of the user-supplied labels.
 		std::string inputLabels[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		std::string outputLabels[TTLCONDTRIG_OUTPUTS];
 

@@ -28,9 +28,9 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     inIdx = newInIdx;
 
     // Indicator lamp images.
-    lampGreenImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
-    lampAmberImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_AMBER_FILL, LAMP_AMBER_HIGHLIGHT);
-    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+    lampGreenImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
+    lampAmberImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_AMBER_FILL, LAMP_AMBER_HIGHLIGHT);
+    lampOffImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
 
     // Raw input indicator lamp icon.
     // It's less expensive to have two images and make only one visible than it is to change the image on one component.
@@ -58,7 +58,7 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
 //    inputNameLabel->setEnabled(false);
 
     // Settings button.
-    settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
+    settingsImage = new Wrench16Image(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
     settingsButton = new ImageButton;
     // Images are normal, hover-over, and pressed.
     // Tuples are image, image opacity, and overlay colour.
@@ -240,8 +240,8 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     outIdx = newOutIdx;
 
     // Enable button.
-    connectOnImage = new ConnectedImage(CONN_BACKGROUND, CONN_FOREGROUND);
-    connectOffImage = new DisconnectedImage(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
+    connectOnImage = new Connected16Image(CONN_BACKGROUND, CONN_FOREGROUND);
+    connectOffImage = new Disconnected16Image(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
     enableButton = new ImageButton;
     // Images are normal, hover-over, and pressed.
     // Tuples are image, image opacity, and overlay colour.
@@ -259,7 +259,7 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
 //    outputNameLabel->setEnabled(false);
 
     // Settings button.
-    settingsImage = new WrenchImage(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
+    settingsImage = new Wrench16Image(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
     settingsButton = new ImageButton;
     // Images are normal, hover-over, and pressed.
     // Tuples are image, image opacity, and overlay colour.
@@ -271,7 +271,7 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     // Indicator lamp icon.
     // It's less expensive to have two images and make only one visible than it is to change the image on one component.
 
-    lampOnImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
+    lampOnImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
     lampOnComponent = new ImageComponent();
     lampOnComponent->setImage(*lampOnImage);
 
@@ -280,7 +280,7 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     lampOnComponent->setEnabled(false);
     lampOnComponent->setVisible(false);
 
-    lampOffImage = new IndicatorLampImage(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+    lampOffImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
     lampOffComponent = new ImageComponent();
     lampOffComponent->setImage(*lampOffImage);
 
@@ -497,7 +497,10 @@ T_PRINT("Editor constructor called.");
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputConfig[outIdx].clear();
+        isOutputEnabled[outIdx] = false;
         needAllInputs[outIdx] = true;
+
+        outputLampState[outIdx] = false;
 
 //        outputLabels[outIdx] = "unnamed";
         scratchstring = "Output ";
@@ -507,6 +510,12 @@ T_PRINT("Editor constructor called.");
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
             inputConfig[inMatrixPtr].clear();
+            isInputEnabled[inMatrixPtr] = false;
+            inputChanIdx[inMatrixPtr] = TTLCONDTRIG_CHANIDX_NONE;
+            inputBitIdx[inMatrixPtr] = TTLCONDTRIG_BITIDX_NONE;
+
+            inputRawLampState[inMatrixPtr] = false;
+            inputCookedLampState[inMatrixPtr] = false;
 
 //            inputLabels[inMatrixPtr] = "unnamed";
             scratchstring = "Input ";
@@ -640,19 +649,25 @@ T_PRINT("loadCustomParameters() called.");
 
 
 // Accessor to push input configuration state to the editor.
-void TTLConditionalTriggerEditor::pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig)
+void TTLConditionalTriggerEditor::pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, bool wantEnabled, int newChanIdx, int newBitIdx)
 {
     if ( (inMatrixIdx >= 0) && (inMatrixIdx < (TTLCONDTRIG_INPUTS*TTLCONDTRIG_OUTPUTS)) )
+    {
         inputConfig[inMatrixIdx] = newConfig;
+        isInputEnabled[inMatrixIdx] = wantEnabled;
+        inputChanIdx[inMatrixIdx] = newChanIdx;
+        inputBitIdx[inMatrixIdx] = newBitIdx;
+    }
 }
 
 
 // Accessor to push output configuration state to the editor.
-void TTLConditionalTriggerEditor::pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool newNeedAllInputs)
+void TTLConditionalTriggerEditor::pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool wantEnabled, bool newNeedAllInputs)
 {
     if ( (outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS) )
     {
         outputConfig[outIdx] = newConfig;
+        isOutputEnabled[outIdx] = wantEnabled;
         needAllInputs[outIdx] = newNeedAllInputs;
     }
 }
@@ -667,7 +682,7 @@ void TTLConditionalTriggerEditor::pushRunningStateToEditor(bool (&rawInputs)[TTL
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputLampState[outIdx] = outputState[outIdx];
-        outputConfig[outIdx].isEnabled = outputsEnabled[outIdx];
+        isOutputEnabled[outIdx] = outputsEnabled[outIdx];
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
@@ -683,7 +698,7 @@ void TTLConditionalTriggerEditor::pushRunningStateToEditor(bool (&rawInputs)[TTL
 // NOTE - We'd better hope this is safe! We can't push strings via setParameter().
 std::string TTLConditionalTriggerEditor::getOutputLabel(int outIdx)
 {
-    std::string retVal = "";
+    std::string retVal = "bogus";
 
     if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
         retVal = outputLabels[outIdx];
@@ -728,12 +743,11 @@ T_PRINT("clickedOutputEnableToggle() called for output " << idxClicked << ".");
 
     if ((idxClicked >= 0) && (idxClicked < TTLCONDTRIG_OUTPUTS))
     {
-        bool newEnabled = !outputConfig[idxClicked].isEnabled;
+        bool newEnabled = !isOutputEnabled[idxClicked];
 T_PRINT("Setting output enable for " << idxClicked << " to " << newEnabled << ".");
 
         parent->setOutputParamByChan(idxClicked, TTLCONDTRIG_PARAM_IS_ENABLED, (newEnabled ? 1 : 0));
-// FIXME - Placeholder. Should do this through the plugin.
-outputConfig[idxClicked].isEnabled = newEnabled;
+        // This will get updated during the next poll, but do it now as well to avoid visible delay.
         outputStatusPanel->setOutputEnabled(idxClicked, newEnabled);
     }
 }

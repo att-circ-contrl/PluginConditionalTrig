@@ -31,34 +31,34 @@ namespace TTLConditionTrig
 	// Monochrome icons.
 
 	// Settings button image (wrench).
-	class WrenchImage : public IconMonochrome
+	class Wrench16Image : public IconMonochrome
 	{
 	public:
-		WrenchImage(Colour bgcolour, Colour fgcolour);
+		Wrench16Image(Colour bgcolour, Colour fgcolour);
 	};
 
 	// Connected image (cable).
-	class ConnectedImage : public IconMonochrome
+	class Connected16Image : public IconMonochrome
 	{
 	public:
-		ConnectedImage(Colour bgcolour, Colour fgcolour);
+		Connected16Image(Colour bgcolour, Colour fgcolour);
 	};
 
 	// Disconnected image (cable).
-	class DisconnectedImage : public IconMonochrome
+	class Disconnected16Image : public IconMonochrome
 	{
 	public:
-		DisconnectedImage(Colour bgcolour, Colour fgcolour);
+		Disconnected16Image(Colour bgcolour, Colour fgcolour);
 	};
 
 
 	// Palette-based icons.
 
 	// Indicator lamp image.
-	class IndicatorLampImage : public IconPalette
+	class IndicatorLamp16Image : public IconPalette
 	{
 	public:
-		IndicatorLampImage(Colour bgcolour, Colour outlinecolour, Colour lampcolour, Colour highlightcolour);
+		IndicatorLamp16Image(Colour bgcolour, Colour outlinecolour, Colour lampcolour, Colour highlightcolour);
 	};
 }
 

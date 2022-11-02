@@ -3,9 +3,8 @@
 
 #include <ProcessorHeaders.h>
 
-// NOTE - C++ compiles templated classes on-demand.
-// The header both declares and implements them. Extra copies get pruned at link-time.
-#include "TTLCondTrigTemplates.h"
+#include "TTLCondTrigCircBuf.h"
+#include "TTLCondTrigLogic.h"
 
 
 // Magic constants for data geometry.
@@ -20,71 +19,6 @@
 // Class declarations.
 namespace TTLConditionTrig
 {
-	// Configuration for processing conditions on one signal.
-	// Nothing in here is dynamically allocated, so copy-by-value is fine.
-	class ConditionConfig
-	{
-	public:
-		// Configuration parameters. External editing is fine.
-		bool isEnabled;
-		int64 delayMinSamps, delayMaxSamps;
-		int64 sustainSamps;
-		int64 deadTimeSamps;
-		int64 deglitchSamps;
-		bool outputActiveHigh;
-		// Only valid for conditions on inputs.
-		int chanIdx;
-		int bitIdx;
-
-		// Constructor.
-		ConditionConfig();
-		// Default destructor is fine.
-
-		// This sets a known-sane configuration state.
-		void clear();
-	};
-
-
-	// Condition processing for one TTL signal.
-	class ConditionProcessor
-	{
-	public:
-		// Constructor.
-		ConditionProcessor();
-		// Default destructor is fine.
-
-		// Accessors.
-
-		void setConfig(ConditionConfig &newConfig);
-		ConditionConfig getConfig();
-		void resetState();
-		// Lightweight enable query/toggle (vs having to check the full configuration).
-		bool isEnabled();
-		void setEnabled(bool wantEnabled);
-
-		void resetInput(int64 resetTime, bool newInput);
-		void handleInput(int64 inputTime, bool inputLevel);
-
-		bool hasPendingOutput();
-		int64 getNextOutputTime();
-		bool getNextOutputLevel();
-                void acknowledgeOutput();
-
-		// These are mostly to simplify display polling.
-		bool getLastInput();
-		bool getLastAcknowledgedOutput();
-
-	protected:
-		ConditionConfig config;
-		int64 prevInputTime;
-		bool prevInputLevel;
-		bool prevAcknowledgedOutput;
-		CircBuf<int64,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputTimes;
-		CircBuf<bool,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputLevels;
-	};
-
-
-	// The plugin itself.
 	class TTLConditionalTrigger : public GenericProcessor
 	{
 	public:
@@ -131,7 +65,13 @@ namespace TTLConditionTrig
 		ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
 
-		// This is the "need all"/"need any" switch for each output.
+		// Additional input configuration.
+		bool isInputEnabled[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		int inputChanIdx[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		int inputBitIdx[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+
+		// Additional output configuration.
+		bool isOutputEnabled[TTLCONDTRIG_OUTPUTS];
 		bool needAllInputs[TTLCONDTRIG_OUTPUTS];
 
 		// NOTE - The editor is responsible for labels. We don't cache them.
