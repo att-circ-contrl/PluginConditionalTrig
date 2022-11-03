@@ -9,17 +9,21 @@
 
 // Magic constants for parameter indices.
 // Making this an enum isn't any cleaner, since we aren't guaranteed sequential values.
+// Configuration handled by the plugin.
 #define TTLCONDTRIG_PARAM_IS_ENABLED 0
 #define TTLCONDTRIG_PARAM_CHAN_IDX 1
 #define TTLCONDTRIG_PARAM_BIT_IDX 2
-#define TTLCONDTRIG_PARAM_DELAY_MIN 3
-#define TTLCONDTRIG_PARAM_DELAY_MAX 4
-#define TTLCONDTRIG_PARAM_SUSTAIN 5
-#define TTLCONDTRIG_PARAM_DEADTIME 6
-#define TTLCONDTRIG_PARAM_DEGLITCH 7
-#define TTLCONDTRIG_PARAM_OUTSENSE 8
-// This should be equal to or greater than the number of per-channel parameters.
-#define TTLCONDTRIG_PARAM_STRIDE 10
+#define TTLCONDTRIG_PARAM_WANT_ALL 3
+// Configuration handled by the TTL logic widgets.
+#define TTLCONDTRIG_PARAM_DELAY_MIN 10
+#define TTLCONDTRIG_PARAM_DELAY_MAX 11
+#define TTLCONDTRIG_PARAM_SUSTAIN 12
+#define TTLCONDTRIG_PARAM_DEADTIME 13
+#define TTLCONDTRIG_PARAM_DEGLITCH 14
+#define TTLCONDTRIG_PARAM_INFEATURE 15
+#define TTLCONDTRIG_PARAM_OUTSENSE 16
+// This should be greater than the largest parameter identifier.
+#define TTLCONDTRIG_PARAM_STRIDE 20
 
 #define TTLCONDTRIG_PARAM_STRIDE_INPUT TTLCONDTRIG_PARAM_STRIDE
 #define TTLCONDTRIG_PARAM_STRIDE_OUTPUT (TTLCONDTRIG_INPUTS * TTLCONDTRIG_PARAM_STRIDE_INPUT)
@@ -44,15 +48,15 @@
 #define TTLCONDTRIG_TAB_XSIZE 16
 
 #define TTLCONDTRIG_LABEL_XSIZE 60
-#define TTLCONDTRIG_BOOLBUTTON_XSIZE 20
-#define TTLCONDTRIG_BOOLBUTTON_YSIZE (TTLCONDTRIG_YSIZE * 2 + TTLCONDTRIG_YGAP)
+#define TTLCONDTRIG_BOOLBUTTON_XSIZE 40
+#define TTLCONDTRIG_BOOLBUTTON_YSIZE (TTLCONDTRIG_YSIZE)
 
 #define TTLCONDTRIG_INROW_XSIZE (TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_WRENCH_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_LAMP_SIZE)
-#define TTLCONDTRIG_INPANEL_XSIZE (TTLCONDTRIG_XGAP + TTLCONDTRIG_INROW_XSIZE + TTLCONDTRIG_XGAP)
+#define TTLCONDTRIG_INPANEL_XSIZE (TTLCONDTRIG_XGAP + TTLCONDTRIG_INROW_XSIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_BOOLBUTTON_XSIZE + TTLCONDTRIG_XGAP)
 #define TTLCONDTRIG_INPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
 
 #define TTLCONDTRIG_OUTROW_XSIZE (TTLCONDTRIG_XGAP + TTLCONDTRIG_CONN_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_LABEL_XSIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_WRENCH_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_XGAP + TTLCONDTRIG_TAB_XSIZE)
-#define TTLCONDTRIG_OUTPANEL_XSIZE (TTLCONDTRIG_OUTROW_XSIZE+TTLCONDTRIG_XGAP)
+#define TTLCONDTRIG_OUTPANEL_XSIZE (TTLCONDTRIG_OUTROW_XSIZE)
 // There's an empty row above the tabs to make this the same height as the input panel.
 #define TTLCONDTRIG_OUTPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
 
@@ -81,7 +85,16 @@
 #define LAMP_OFF_HIGHLIGHT juce::Colours::grey
 
 // This needs as many entries as we have outputs.
-#define OUTPUT_COLOUR_LIST { juce::Colours::darksalmon, juce::Colours::goldenrod, juce::Colours::seagreen, juce::Colours::steelblue }
+// Original.
+//#define OUTPUT_COLOUR_LIST { juce::Colours::darksalmon, juce::Colours::goldenrod, juce::Colours::seagreen, juce::Colours::steelblue }
+// Vibrant.
+//#define OUTPUT_COLOUR_LIST { juce::Colours::darksalmon, juce::Colours::goldenrod, juce::Colours::forestgreen, juce::Colours::royalblue }
+// Alternate.
+#define OUTPUT_COLOUR_LIST { juce::Colours::darksalmon, juce::Colours::goldenrod, juce::Colours::olivedrab, juce::Colours::darkcyan }
+
+//#define OUTPUT_BACKGROUND juce::Colours::darkgrey
+//#define OUTPUT_BACKGROUND juce::Colours::midnightblue
+#define OUTPUT_BACKGROUND juce::Colours::black
 
 
 #endif

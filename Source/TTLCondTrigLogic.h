@@ -14,7 +14,16 @@ namespace TTLConditionTrig
 	class ConditionConfig
 	{
 	public:
+		enum FeatureType
+		{
+			levelHigh = 0,
+			levelLow = 1,
+			edgeRising = 2,
+			edgeFalling = 3
+		};
+
 		// Configuration parameters. External editing is fine.
+		FeatureType desiredFeature;
 		int64 delayMinSamps, delayMaxSamps;
 		int64 sustainSamps;
 		int64 deadTimeSamps;

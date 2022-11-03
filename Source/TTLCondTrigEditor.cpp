@@ -148,6 +148,8 @@ void TTLConditionalTriggerEditorInputRow::setInputEnabled(bool isEnabled)
 // Constructor.
 TTLConditionalTriggerEditorInputPanel::TTLConditionalTriggerEditorInputPanel(TTLConditionalTriggerEditor* newParent)
 {
+    parent = newParent;
+
     backgroundColour = COLOUR_BOGUS;
 
     for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
@@ -163,7 +165,31 @@ TTLConditionalTriggerEditorInputPanel::TTLConditionalTriggerEditorInputPanel(TTL
     // Disabling this greys it out. Instead let it get clicks and ignore them.
 //    bannerLabel->setEnabled(false);
 
+    textWantLabel = new Label("AnyAll Banner", "Want");
+    textWantLabel->setBounds(TTLCONDTRIG_INROW_XSIZE + TTLCONDTRIG_XGAP*2, TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP*2, TTLCONDTRIG_BOOLBUTTON_XSIZE, TTLCONDTRIG_YSIZE);
+    textWantLabel->setJustificationType(Justification::centred);
+    addAndMakeVisible(textWantLabel);
+
+    textAnyAllLabel = new Label("AnyAll State", "---");
+    textAnyAllLabel->setBounds(TTLCONDTRIG_INROW_XSIZE + TTLCONDTRIG_XGAP*2, TTLCONDTRIG_YSIZE*2 + TTLCONDTRIG_YGAP*3, TTLCONDTRIG_BOOLBUTTON_XSIZE, TTLCONDTRIG_YSIZE);
+    textAnyAllLabel->setJustificationType(Justification::centred);
+    addAndMakeVisible(textAnyAllLabel);
+
+    wantAnyAllButton = new UtilityButton( "", Font("Small Text", 13, Font::plain) );
+    wantAnyAllButton->setBounds(TTLCONDTRIG_INROW_XSIZE + TTLCONDTRIG_XGAP*2, TTLCONDTRIG_YSIZE*3 + TTLCONDTRIG_YGAP*4, TTLCONDTRIG_BOOLBUTTON_XSIZE, TTLCONDTRIG_BOOLBUTTON_YSIZE);
+    wantAnyAllButton->addListener(this);
+    addAndMakeVisible(wantAnyAllButton);
+
     setOutputLabel("undefined");
+    setAnyAllState(true);
+}
+
+
+// Callback for button presses.
+// This is the "want any" button or the "want all" button.
+void TTLConditionalTriggerEditorInputPanel::buttonClicked(Button *theButton)
+{
+    parent->clickedAnyAll();
 }
 
 
@@ -208,6 +234,12 @@ void TTLConditionalTriggerEditorInputPanel::setCookedLampState(int inIdx, bool w
 }
 
 
+void TTLConditionalTriggerEditorInputPanel::setAnyAllState(bool wantAll)
+{
+    textAnyAllLabel->setText( (wantAll ? "All" : "Any"), dontSendNotification );
+}
+
+
 void TTLConditionalTriggerEditorInputPanel::setFillColour(Colour newColour)
 {
     backgroundColour = newColour;
@@ -218,6 +250,11 @@ void TTLConditionalTriggerEditorInputPanel::setRunningState(bool isRunning)
 {
     for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         inputRows[inIdx]->setRunningState(isRunning);
+
+
+    textWantLabel->setEnabled(!isRunning);
+    textAnyAllLabel->setEnabled(!isRunning);
+    wantAnyAllButton->setEnabled(!isRunning);
 }
 
 
@@ -375,7 +412,8 @@ void TTLConditionalTriggerEditorOutputRow::setTabColour(Colour newColour)
     // This gets overwritten when setOutputEnabled() is called.
     currentBackgroundColour = COLOUR_BOGUS;
 
-    // FIXME - Call setOutputEnabled() to propagate colour values to buttons.
+    // Call setOutputEnabled() to propagate colour values to buttons.
+    // The real enable state will get set as soon as the timer callback starts.
     setOutputEnabled(false);
 }
 
@@ -423,9 +461,17 @@ TTLConditionalTriggerEditorOutputPanel::TTLConditionalTriggerEditorOutputPanel(T
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputRows[outIdx] = new TTLConditionalTriggerEditorOutputRow(newParent, outIdx);
-        outputRows[outIdx]->setBounds(TTLCONDTRIG_XGAP, (TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP) * (outIdx+1) + TTLCONDTRIG_YGAP, TTLCONDTRIG_OUTROW_XSIZE, TTLCONDTRIG_YSIZE);
+        outputRows[outIdx]->setBounds(0, (TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP) * (outIdx+1) + TTLCONDTRIG_YGAP, TTLCONDTRIG_OUTROW_XSIZE, TTLCONDTRIG_YSIZE);
         addAndMakeVisible(outputRows[outIdx]);
     }
+}
+
+
+// Redraw hook.
+void TTLConditionalTriggerEditorOutputPanel::paint(Graphics& g)
+{
+    // Flat background underneath child components.
+    g.fillAll(OUTPUT_BACKGROUND);
 }
 
 
@@ -545,15 +591,13 @@ T_PRINT("Editor constructor called.");
     addAndMakeVisible(inputStatusPanel);
     inputStatusPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_INPANEL_XSIZE, TTLCONDTRIG_INPANEL_YSIZE);
 
-// FIXME - Any-or-all buttons NYI.
-
     outputStatusPanel = new TTLConditionalTriggerEditorOutputPanel(this);
     addAndMakeVisible(outputStatusPanel);
-    outputStatusPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET + TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_BOOLBUTTON_XSIZE + TTLCONDTRIG_XGAP*2, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_OUTPANEL_XSIZE, TTLCONDTRIG_OUTPANEL_YSIZE);
+    outputStatusPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET + TTLCONDTRIG_INPANEL_XSIZE, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_OUTPANEL_XSIZE, TTLCONDTRIG_OUTPANEL_YSIZE);
 
 // FIXME - Condition settings dialog NYI.
 
-    setDesiredWidth(TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_BOOLBUTTON_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE + TTLCONDTRIG_XGAP*2 + TTLCONDTRIG_GLOBAL_XOFFSET*2);
+    setDesiredWidth(TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE + TTLCONDTRIG_GLOBAL_XOFFSET*2);
 
 
     // Set up coloured tabs.
@@ -609,7 +653,6 @@ void TTLConditionalTriggerEditor::timerCallback()
     {
         inputStatusPanel->setRunningState(acquisitionIsActive);
         outputStatusPanel->setRunningState(acquisitionIsActive);
-// FIXME - Set running/not-running for the "any/all" buttons here too.
     }
 
     wasRunningLastRedraw = acquisitionIsActive;
@@ -617,11 +660,18 @@ void TTLConditionalTriggerEditor::timerCallback()
     // Pull data if not running.
     // If we're running, let process() push it to avoid race conditions.
     if (!acquisitionIsActive)
-        parent->pushStateToDisplay();
+        parent->pushFullStateToDisplay();
 
     // Reconfigure elements that are updated while running.
     // Everything else gets updated elsewhere.
     propagateRunningElementConfig();
+
+    // If we're not running, propagate everything else too.
+    if (!acquisitionIsActive)
+    {
+        propagateInputPaneConfig();
+        propagateOutputPaneConfig();
+    }
 
     // Force a redraw here, rather than in half a dozen "user clicked something" functions.
     repaint();
@@ -742,6 +792,7 @@ void TTLConditionalTriggerEditor::propagateInputPaneConfig()
     }
 
     inputStatusPanel->setOutputLabel(outputLabels[outputSelectIdx]);
+    inputStatusPanel->setAnyAllState(needAllInputs[outputSelectIdx]);
 }
 
 
@@ -761,12 +812,19 @@ T_PRINT("clickedInputSettings() called for input " << idxClicked << ".");
 }
 
 
+// Accessor for toggling "want any"/"want all".
+void TTLConditionalTriggerEditor::clickedAnyAll()
+{
+T_PRINT("clickedAnyAll() called.");
+    bool wantAll = !needAllInputs[outputSelectIdx];
+    parent->setOutputParamByChan(outputSelectIdx, TTLCONDTRIG_PARAM_WANT_ALL, wantAll);
+}
+
+
 // Accessor for switching to editing conditions for an ouput.
 void TTLConditionalTriggerEditor::clickedOutputEnableToggle(int idxClicked)
 {
 T_PRINT("clickedOutputEnableToggle() called for output " << idxClicked << ".");
-
-// FIXME - clickedOutputEnableToggle() NYI.
 
     if ((idxClicked >= 0) && (idxClicked < TTLCONDTRIG_OUTPUTS))
     {
@@ -774,8 +832,6 @@ T_PRINT("clickedOutputEnableToggle() called for output " << idxClicked << ".");
 T_PRINT("Setting output enable for " << idxClicked << " to " << newEnabled << ".");
 
         parent->setOutputParamByChan(idxClicked, TTLCONDTRIG_PARAM_IS_ENABLED, (newEnabled ? 1 : 0));
-        // This will get updated during the next poll, but do it now as well to avoid visible delay.
-//        outputStatusPanel->setOutputEnabled(idxClicked, newEnabled);
     }
 }
 

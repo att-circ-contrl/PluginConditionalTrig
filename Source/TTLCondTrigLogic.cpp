@@ -23,6 +23,8 @@ void ConditionConfig::clear()
 {
     // Set sane defaults.
 
+    desiredFeature = FeatureType::levelHigh;
+
     delayMinSamps = 0;
     delayMaxSamps = 0;
     sustainSamps = 10;

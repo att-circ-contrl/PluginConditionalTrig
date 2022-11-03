@@ -125,7 +125,7 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
 // FIXME - process() event generation NYI.
 
     // Propagate state updates to the GUI.
-    pushStateToDisplay();
+    pushRunningStateToDisplay();
 }
 
 
@@ -175,7 +175,7 @@ T_PRINT( "setParameter() called setting " << parameterIndex << " to: " << intege
         }
     }
 
-T_PRINT("Got regIdx " << regIdx << ", inIdx " << inIdx << ", outIdx " << outIdx << ", matrixIdx " << matrixIdx << ".");
+T_PRINT("Got regIdx " << regIdx << ", inIdx " << (isInput ? "*" : "") << inIdx << ", outIdx " << (isOutput ? "*" : "") << outIdx << ", matrixIdx " << matrixIdx << ".");
 
     // FIXME - Make it easier to debug screwups.
     if ( (regIdx < 0) || (regIdx >= TTLCONDTRIG_PARAM_STRIDE) || (inIdx < 0) || (inIdx >= TTLCONDTRIG_INPUTS) || (outIdx < 0) || (outIdx >= TTLCONDTRIG_OUTPUTS) || (matrixIdx < 0) || (matrixIdx >= (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS)) )
@@ -197,6 +197,7 @@ T_PRINT("###  Indices out of range! Bailing out.");
 
     switch(regIdx)
     {
+    // Configuration handled by the plugin.
     case TTLCONDTRIG_PARAM_IS_ENABLED:
         if (isInput)
             isInputEnabled[matrixIdx] = booleanValue;
@@ -211,6 +212,11 @@ T_PRINT("###  Indices out of range! Bailing out.");
         if (isInput)
             inputBitIdx[matrixIdx] = integerValue;
         break;
+    case TTLCONDTRIG_PARAM_WANT_ALL:
+        if (isOutput)
+            needAllInputs[outIdx] = booleanValue;
+        break;
+    // Configuration handled by the TTL logic widgets.
     case TTLCONDTRIG_PARAM_DELAY_MIN:
         thisConfig.delayMinSamps = integerValue; break;
     case TTLCONDTRIG_PARAM_DELAY_MAX:
@@ -221,6 +227,10 @@ T_PRINT("###  Indices out of range! Bailing out.");
         thisConfig.deadTimeSamps = integerValue; break;
     case TTLCONDTRIG_PARAM_DEGLITCH:
         thisConfig.deglitchSamps = integerValue; break;
+    case TTLCONDTRIG_PARAM_INFEATURE:
+        // FIXME - Blithely assuming the value maps to a valid enum!
+        thisConfig.desiredFeature = (ConditionConfig::FeatureType) integerValue;
+        break;
     case TTLCONDTRIG_PARAM_OUTSENSE:
         thisConfig.outputActiveHigh = booleanValue; break;
     default:
@@ -280,35 +290,14 @@ void TTLConditionalTrigger::setOutputParamByChan(int outputIdx, int paramIdx, lo
 
 
 // This propagates state to the display.
-// It's called by process() and can also be called manually.
-void TTLConditionalTrigger::pushStateToDisplay()
+// This version only propagates things that should update while we're running.
+void TTLConditionalTrigger::pushRunningStateToDisplay()
 {
     // NOTE - The editor is already stored as the GenericProcessor class variable "editor".
     // We do need to re-cast it.
     TTLConditionalTriggerEditor* theEditor = (TTLConditionalTriggerEditor*) (editor.get());
 
-    // NOTE - We're only pushing full config state when we _aren't_ running.
-    // Check the "isEnabled" variable to determine this.
-
-    if (!isEnabled)
-    {
-        // We're not running. Propagate the config state.
-        // NOTE - This should rarely actually change anything, since we got our config from the UI.
-        // The exception is if we loaded configuration from XML or otherwise got it from somewhere other than the user clicking buttons.
-        int inMatrixPtr = 0;
-        for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
-        {
-            theEditor->pushOutputConfigToEditor(outIdx, outputConditions[outIdx].getConfig(), isOutputEnabled[outIdx], needAllInputs[outIdx]);
-            for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
-            {
-                theEditor->pushInputConfigToEditor(inMatrixPtr, inputConditions[inMatrixPtr].getConfig(), isInputEnabled[inMatrixPtr], inputChanIdx[inMatrixPtr], inputBitIdx[inMatrixPtr]);
-                inMatrixPtr++;
-            }
-        }
-    }
-
-    // Always propagate running state.
-
+    // Aggregate and push the relevant state elements.
     bool rawInputs[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
     bool cookedInputs[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
     bool outputState[TTLCONDTRIG_OUTPUTS];
@@ -336,6 +325,31 @@ void TTLConditionalTrigger::pushStateToDisplay()
     }
 
     theEditor->pushRunningStateToEditor(rawInputs, cookedInputs, outputState, isOutputEnabled);
+}
+
+
+// This propagates state to the display.
+// This version is called when we're not running, and propagates everything.
+void TTLConditionalTrigger::pushFullStateToDisplay()
+{
+    // NOTE - The editor is already stored as the GenericProcessor class variable "editor".
+    // We do need to re-cast it.
+    TTLConditionalTriggerEditor* theEditor = (TTLConditionalTriggerEditor*) (editor.get());
+
+    // We're not running. Push the full config state.
+    int inMatrixPtr = 0;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        theEditor->pushOutputConfigToEditor(outIdx, outputConditions[outIdx].getConfig(), isOutputEnabled[outIdx], needAllInputs[outIdx]);
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        {
+            theEditor->pushInputConfigToEditor(inMatrixPtr, inputConditions[inMatrixPtr].getConfig(), isInputEnabled[inMatrixPtr], inputChanIdx[inMatrixPtr], inputBitIdx[inMatrixPtr]);
+            inMatrixPtr++;
+        }
+    }
+
+    // Propagate the running state as well.
+    pushRunningStateToDisplay();
 }
 
 

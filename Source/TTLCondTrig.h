@@ -56,8 +56,9 @@ namespace TTLConditionTrig
 		void setOutputParamByChan(int outputIdx, int paramIdx, long newValue);
 
 		// This propagates state to the display.
-		// It's called by process() and can also be called manually.
-		void pushStateToDisplay();
+		// The "running" version is called by process(). The full version is called by the editor when we're not running.
+		void pushRunningStateToDisplay();
+		void pushFullStateToDisplay();
 
 	protected:
 		// There shouldn't be anything dynamically allocated in here, and thread safety should already by guaranteed by setParameter().

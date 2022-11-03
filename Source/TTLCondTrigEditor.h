@@ -47,10 +47,12 @@ namespace TTLConditionTrig
 
 
 	// GUI panel for configuring a set of inputs associated with an output.
-	class TTLConditionalTriggerEditorInputPanel : public Component
+	class TTLConditionalTriggerEditorInputPanel : public Component, Button::Listener
 	{
 	public:
 		TTLConditionalTriggerEditorInputPanel(TTLConditionalTriggerEditor *newParent);
+
+		void buttonClicked(Button* theButton);
 
 		void paint(Graphics& g);
 
@@ -58,16 +60,22 @@ namespace TTLConditionTrig
 		void setInputLabel(int inIdx, std::string newLabel);
 		void setRawLampState(int inIdx, bool wantLit);
 		void setCookedLampState(int inIdx, bool wantLit);
+		void setAnyAllState(bool wantAll);
 		void setFillColour(Colour newColour);
 
 		void setRunningState(bool isRunning);
 		void setInputEnabled(int inIdx, bool isEnabled);
 
 	protected:
+		TTLConditionalTriggerEditor *parent;
+
 		Colour backgroundColour;
 
 		ScopedPointer<TTLConditionalTriggerEditorInputRow> inputRows[TTLCONDTRIG_INPUTS];
 		ScopedPointer<Label> bannerLabel;
+		ScopedPointer<Label> textWantLabel;
+		ScopedPointer<Label> textAnyAllLabel;
+		ScopedPointer<UtilityButton> wantAnyAllButton;
 	};
 
 
@@ -121,6 +129,8 @@ namespace TTLConditionTrig
 	public:
 		TTLConditionalTriggerEditorOutputPanel(TTLConditionalTriggerEditor *newParent);
 
+		void paint(Graphics& g);
+
 		void setOutputLabel(int outIdx, std::string newLabel);
 		void setLampState(int outIdx, bool wantLit);
 		void setTabColour(int outIdx, Colour newColour);
@@ -173,6 +183,7 @@ namespace TTLConditionTrig
 		// Accessors for changing GUI state.
 		// These are called by input or output GUI widgets.
 		void clickedInputSettings(int idxClicked);
+		void clickedAnyAll();
 		void clickedOutputEnableToggle(int idxClicked);
 		void clickedOutputSettings(int idxClicked);
 		void clickedOutputTab(int idxClicked);
@@ -210,8 +221,6 @@ namespace TTLConditionTrig
 		ScopedPointer<TTLConditionalTriggerEditorInputPanel> inputStatusPanel;
 		ScopedPointer<TTLConditionalTriggerEditorOutputPanel> outputStatusPanel;
 //		ScopedPointer<Component> conditionEditPanel;
-
-		// FIXME - State information to render goes here.
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTriggerEditor);
 	};
