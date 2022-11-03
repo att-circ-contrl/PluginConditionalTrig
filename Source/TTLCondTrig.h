@@ -30,9 +30,9 @@ namespace TTLConditionTrig
 		bool hasEditor() const { return true; }
 		AudioProcessorEditor* createEditor() override;
 
-		// Rebuild external configuration information.
-		// We detect available inputs here.
-		void updateSettings() override;
+		// We don't rebuild input geometry information; the editor does.
+		// We create outputs here.
+		void createEventChannels() override;
 
 		// Processing loop.
 		void process(AudioSampleBuffer& buffer) override;
@@ -76,6 +76,9 @@ namespace TTLConditionTrig
 		bool needAllInputs[TTLCONDTRIG_OUTPUTS];
 
 		// NOTE - The editor is responsible for labels. We don't cache them.
+
+		// NOTE - This is owned by Open Ephys, not us. So it can't be a ScopedPointer.
+		EventChannel *outputEventChan;
 
 	private:
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTrigger);

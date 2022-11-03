@@ -80,19 +80,42 @@ T_PRINT("Creating editor.");
 
 
 // Rebuild external configuration information.
-// We detect available inputs here.
-void TTLConditionalTrigger::updateSettings()
+// We create TTL outputs here.
+void TTLConditionalTrigger::createEventChannels()
 {
-T_PRINT("udpateSettings() called.");
+T_PRINT("createEventChannels() called.");
 
-    // Push input TTL geometry to the editor.
+    // Get a properly-cast pointer to the editor. We need to talk to it.
+    TTLConditionalTriggerEditor* theEditor = (TTLConditionalTriggerEditor*) (editor.get());
 
-    // Pull output TTL information from the editor.
+    // Ask the editor what the output labels should be.
     // FIXME - We'd better hope it's safe to do this here! We can't send label strings through setParameter().
+    std::string outputLabels[TTLCONDTRIG_OUTPUTS];
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        outputLabels[outIdx] = theEditor->getOutputLabel(outIdx);
 
-// FIXME - updateSettings() NYI.
-// We need to get a list of inputs, pass them to the GUI, and specify our outputs.
-// FIXME - We need to pull user-defined label information from the GUI. We'd better hope it's safe to do so from here!
+    // Create our output channels.
+    // Always build these, even if they aren't used/enabled.
+
+    // FIXME - Conflicting documentation for TTL channel length!
+    // One source says TTL length is 1, another says it's the number of bytes needed to represent the number of virtual channels.
+//    int evLength = 1;
+    int evLength = (TTLCONDTRIG_OUTPUTS + 7)/8;
+    outputEventChan = new EventChannel(EventChannel::TTL, TTLCONDTRIG_OUTPUTS, evLength, -1, this);
+    outputEventChan->setName("conditional triggers");
+    outputEventChan->setIdentifier("ttlcondtrig.outputs");
+
+    // FIXME - Storing output signal names in the description, since I'm not sure virtual channels (bit-lines) _have_ names anywhere.
+    std::string scratchDesc = "(";
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        scratchDesc += (outIdx > 0 ? ", " : " ");
+        scratchDesc += outputLabels[outIdx];
+    }
+    scratchDesc += " )";
+    outputEventChan->setDescription(scratchDesc);
+
+    eventChannelArray.add(outputEventChan);
 }
 
 
@@ -177,7 +200,7 @@ T_PRINT( "setParameter() called setting " << parameterIndex << " to: " << intege
 
 T_PRINT("Got regIdx " << regIdx << ", inIdx " << (isInput ? "*" : "") << inIdx << ", outIdx " << (isOutput ? "*" : "") << outIdx << ", matrixIdx " << matrixIdx << ".");
 
-    // FIXME - Make it easier to debug screwups.
+    // Range check - Make it easier to debug screwups.
     if ( (regIdx < 0) || (regIdx >= TTLCONDTRIG_PARAM_STRIDE) || (inIdx < 0) || (inIdx >= TTLCONDTRIG_INPUTS) || (outIdx < 0) || (outIdx >= TTLCONDTRIG_OUTPUTS) || (matrixIdx < 0) || (matrixIdx >= (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS)) )
     {
 T_PRINT("###  Indices out of range! Bailing out.");

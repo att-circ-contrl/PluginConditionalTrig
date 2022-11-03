@@ -26,6 +26,7 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
 {
     parent = newParent;
     inIdx = newInIdx;
+    textInputName = "undefined";
 
     // Indicator lamp images.
     lampGreenImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
@@ -51,7 +52,7 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     lampGreenOffComponent->setEnabled(false);
 
     // Input name label.
-    inputNameLabel = new Label("Input Name", "undefined");
+    inputNameLabel = new Label("Input Name", textInputName);
     inputNameLabel->setBounds(TTLCONDTRIG_LAMP_SIZE + TTLCONDTRIG_XGAP, 0, TTLCONDTRIG_LABEL_XSIZE, TTLCONDTRIG_YSIZE);
     addAndMakeVisible(inputNameLabel);
     // Disabling this greys it out. Instead let it get clicks and ignore them.
@@ -103,7 +104,9 @@ void TTLConditionalTriggerEditorInputRow::buttonClicked(Button *theButton)
 
 void TTLConditionalTriggerEditorInputRow::setInputLabel(std::string newLabel)
 {
-    inputNameLabel->setText(newLabel, dontSendNotification);
+    textInputName = newLabel;
+    // NOTE - Don't update the label here. Let setInputEnabled() do it.
+//    inputNameLabel->setText(newLabel, dontSendNotification);
 }
 
 
@@ -128,14 +131,11 @@ void TTLConditionalTriggerEditorInputRow::setRunningState(bool isRunning)
 }
 
 
+// NOTE - This is where input label text gets propagated to the GUI.
 void TTLConditionalTriggerEditorInputRow::setInputEnabled(bool isEnabled)
 {
     // If we're not using this input, disable the text (to grey it out) and set an appropriate label.
-
-// FIXME - We do need to flag unused inputs.
-//    if (!isEnabled)
-//        setInputLabel("(unused)");
-
+    inputNameLabel->setText( (isEnabled ? textInputName : "(unused)"), dontSendNotification );
     inputNameLabel->setEnabled(isEnabled);
 }
 
@@ -535,6 +535,12 @@ TTLConditionalTriggerEditor::TTLConditionalTriggerEditor(TTLConditionalTrigger* 
 
 T_PRINT("Editor constructor called.");
 
+    // Reset metadata.
+    inBankNames.clear();
+    inBankIndices.clear();
+    inBankBits.clear();
+
+
     // Force configuration to sane state.
     // This gets overwritten as soon as we start polling.
 
@@ -639,7 +645,45 @@ TTLConditionalTriggerEditor::~TTLConditionalTriggerEditor()
 void TTLConditionalTriggerEditor::updateSettings()
 {
 T_PRINT("updateSettings() called.");
-// FIXME - updateSettings() NYI.
+
+    // Reset metadata.
+    inBankNames.clear();
+    inBankIndices.clear();
+    inBankBits.clear();
+
+    // FIXME - Read the previous node's outputs, to avoid iterating across the outputs that we created, since we're called after createEventChannels().
+    GenericProcessor *theSource = parent->getSourceNode();
+
+    // This can be NULL if we were dragged into the tray first.
+    if (NULL != theSource)
+    {
+        int chanCount = theSource->getTotalEventChannels();
+// FIXME - Diagnostics.
+//T_PRINT("Detected " << chanCount << " upstream event channel banks.");
+
+        for (int cidx = 0; cidx < chanCount; cidx++)
+        {
+            const EventChannel* theChannel = theSource->getEventChannel(cidx);
+            EventChannel::EventChannelTypes thisType = theChannel->getChannelType();
+            int thisBitCount = theChannel->getNumChannels();
+            // We can call the toStdString() method to convert this.
+            String thisName = theChannel->getName();
+
+// FIXME - Diagnostics.
+//T_PRINT(".. Bank " << cidx << " (\"" << thisName << "\") has type " << ((int) thisType) << " with " << thisBitCount << " virtual channels.");
+
+            if (EventChannel::TTL == thisType)
+            {
+                inBankNames.add(thisName);
+                inBankIndices.add(cidx);
+                inBankBits.add(thisBitCount);
+            }
+        }
+    }
+
+    // Refresh the channel/bit selection widgets and sanity-check our recorded input configurations.
+    rebuildInputDialog();
+    sanityCheckInputs();
 }
 
 
@@ -757,53 +801,6 @@ std::string TTLConditionalTriggerEditor::getOutputLabel(int outIdx)
 }
 
 
-// This updates configuration of elements that change while running.
-// The timer callback calls this.
-void TTLConditionalTriggerEditor::propagateRunningElementConfig()
-{
-    // Elements that are updated are input and output lamp states and output enable toggles.
-
-    int inMatrixPtr = outputSelectIdx * TTLCONDTRIG_INPUTS;
-    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
-    {
-        inputStatusPanel->setRawLampState(inIdx, inputRawLampState[inMatrixPtr]);
-        inputStatusPanel->setCookedLampState(inIdx, inputCookedLampState[inMatrixPtr]);
-        inMatrixPtr++;
-    }
-
-    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
-    {
-        outputStatusPanel->setLampState(outIdx, outputLampState[outIdx]);
-        outputStatusPanel->setOutputEnabled(outIdx, isOutputEnabled[outIdx]);
-    }
-}
-
-
-// This updates non-running configuration for the input pane. Mostly this happens when an output tab is clicked, but it'll also reflect label changes.
-void TTLConditionalTriggerEditor::propagateInputPaneConfig()
-{
-    inputStatusPanel->setFillColour(outputStatusPanel->getBackgroundColour(outputSelectIdx));
-
-    int inMatrixPtr = outputSelectIdx * TTLCONDTRIG_INPUTS;
-    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
-    {
-        inputStatusPanel->setInputLabel(inIdx, inputLabels[inMatrixPtr]);
-        inMatrixPtr++;
-    }
-
-    inputStatusPanel->setOutputLabel(outputLabels[outputSelectIdx]);
-    inputStatusPanel->setAnyAllState(needAllInputs[outputSelectIdx]);
-}
-
-
-// This updates non-running configuration for the output pane. Mostly this reflects label changes.
-void TTLConditionalTriggerEditor::propagateOutputPaneConfig()
-{
-    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
-        outputStatusPanel->setOutputLabel(outIdx, outputLabels[outIdx]);
-}
-
-
 // Accessor for switching to editing conditions for an input.
 void TTLConditionalTriggerEditor::clickedInputSettings(int idxClicked)
 {
@@ -862,6 +859,69 @@ void TTLConditionalTriggerEditor::clickedConditionExit()
 {
 T_PRINT("clickedConditionExit() called.");
 // FIXME - clickedConditionExit() NYI.
+}
+
+
+// This updates configuration of elements that change while running.
+// The timer callback calls this.
+void TTLConditionalTriggerEditor::propagateRunningElementConfig()
+{
+    // Elements that are updated are input and output lamp states and output enable toggles.
+
+    int inMatrixPtr = outputSelectIdx * TTLCONDTRIG_INPUTS;
+    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+    {
+        inputStatusPanel->setRawLampState(inIdx, inputRawLampState[inMatrixPtr]);
+        inputStatusPanel->setCookedLampState(inIdx, inputCookedLampState[inMatrixPtr]);
+        inMatrixPtr++;
+    }
+
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputStatusPanel->setLampState(outIdx, outputLampState[outIdx]);
+        outputStatusPanel->setOutputEnabled(outIdx, isOutputEnabled[outIdx]);
+    }
+}
+
+
+// This updates non-running configuration for the input pane. Mostly this happens when an output tab is clicked, but it'll also reflect label changes.
+void TTLConditionalTriggerEditor::propagateInputPaneConfig()
+{
+    inputStatusPanel->setFillColour(outputStatusPanel->getBackgroundColour(outputSelectIdx));
+
+    int inMatrixPtr = outputSelectIdx * TTLCONDTRIG_INPUTS;
+    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+    {
+        inputStatusPanel->setInputLabel(inIdx, inputLabels[inMatrixPtr]);
+        inputStatusPanel->setInputEnabled(inIdx, isInputEnabled[inMatrixPtr]);
+        inMatrixPtr++;
+    }
+
+    inputStatusPanel->setOutputLabel(outputLabels[outputSelectIdx]);
+    inputStatusPanel->setAnyAllState(needAllInputs[outputSelectIdx]);
+}
+
+
+// This updates non-running configuration for the output pane. Mostly this reflects label changes.
+void TTLConditionalTriggerEditor::propagateOutputPaneConfig()
+{
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        outputStatusPanel->setOutputLabel(outIdx, outputLabels[outIdx]);
+}
+
+
+// This tells the settings dialog to rebuild its input selectors after input geometry is re-detected.
+void TTLConditionalTriggerEditor::rebuildInputDialog()
+{
+// FIXME - rebuildInputDialog() NYI.
+}
+
+
+// This checks to make sure that input channels and bit numbers are still valid after input geometry changes.
+// If they're no longer valid, it tells the plugin to disabled them (preserving values in case the input geometry change is transient).
+void TTLConditionalTriggerEditor::sanityCheckInputs()
+{
+// FIXME - sanityCheckInputs() NYI.
 }
 
 

@@ -23,11 +23,13 @@ namespace TTLConditionTrig
 		void setCookedLampState(bool wantLit);
 
 		void setRunningState(bool isRunning);
+		// NOTE - This is what propagates label text to the GUI.
 		void setInputEnabled(bool isEnabled);
 
 	protected:
 		TTLConditionalTriggerEditor *parent;
 		int inIdx;
+		std::string textInputName;
 
 		ScopedPointer<Image> settingsImage;
 		ScopedPointer<Image> lampGreenImage;
@@ -175,11 +177,6 @@ namespace TTLConditionTrig
 		// NOTE - The plugin pulls label strings from us, since we generate them and they can't be pushed via setParameter().
                 std::string getOutputLabel(int outIdx);
 
-		// These may be called by the timer callback or after GUI events that change configuration.
-		void propagateRunningElementConfig();
-		void propagateInputPaneConfig();
-		void propagateOutputPaneConfig();
-
 		// Accessors for changing GUI state.
 		// These are called by input or output GUI widgets.
 		void clickedInputSettings(int idxClicked);
@@ -191,6 +188,11 @@ namespace TTLConditionTrig
 
 	protected:
 		TTLConditionalTrigger* parent;
+
+		// Metadata for input channels.
+		StringArray inBankNames;
+		Array<int> inBankIndices;
+		Array<int> inBankBits;
 
 		// We have our own local copies of configuration state.
 		ConditionConfig inputConfig[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
@@ -221,6 +223,18 @@ namespace TTLConditionTrig
 		ScopedPointer<TTLConditionalTriggerEditorInputPanel> inputStatusPanel;
 		ScopedPointer<TTLConditionalTriggerEditorOutputPanel> outputStatusPanel;
 //		ScopedPointer<Component> conditionEditPanel;
+
+
+		// Internal accessors.
+
+		// These may be called by the timer callback or after GUI events that change configuration.
+		void propagateRunningElementConfig();
+		void propagateInputPaneConfig();
+		void propagateOutputPaneConfig();
+
+		// These are called after possible input geometry changes.
+		void rebuildInputDialog();
+		void sanityCheckInputs();
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTriggerEditor);
 	};
