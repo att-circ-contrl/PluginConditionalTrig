@@ -921,7 +921,35 @@ void TTLConditionalTriggerEditor::rebuildInputDialog()
 // If they're no longer valid, it tells the plugin to disabled them (preserving values in case the input geometry change is transient).
 void TTLConditionalTriggerEditor::sanityCheckInputs()
 {
-// FIXME - sanityCheckInputs() NYI.
+T_PRINT("sanityCheckInputs() called.");
+
+    int inMatrixPtr = 0;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        {
+            if (isInputEnabled[inMatrixPtr])
+            {
+                int thisChanIdx = inputChanIdx[inMatrixPtr];
+                int thisBitIdx = inputBitIdx[inMatrixPtr];
+                int thisLUTIdx = inBankIndices.indexOf(thisChanIdx);
+
+                bool isOk = true;
+                if (thisLUTIdx < 0)
+                    isOk = false;
+                else if (thisBitIdx >= inBankBits[thisLUTIdx])
+                    isOk = false;
+
+                if (!isOk)
+                {
+// NOTE - This might get spammy.
+T_PRINT(".. Disabling input " << inMatrixPtr << " as signal " << thisChanIdx << ":" << thisBitIdx << " no longer exists.");
+                    isInputEnabled[inMatrixPtr] = 0;
+                    parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_IS_ENABLED, false);
+                }
+            }
+
+            inMatrixPtr++;
+        }
 }
 
 
