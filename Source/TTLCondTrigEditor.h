@@ -181,11 +181,12 @@ namespace TTLConditionTrig
 		std::string thisInputLabel, thisOutputLabel;
 
 		ScopedPointer<Label> bannerLeftLabel, bannerEditLabel, bannerRightLabel;
+		ScopedPointer<UtilityButton> doneButton;
 		ScopedPointer<Label> inputFeatureLabel, inputBitLabel, inputChanLabel;
 		ScopedPointer<ComboBox> inputFeatureBox, inputBitBox, inputChanBox;
 		ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel, inputTimeMidLabel, inputDeadtimeLabel, InputTimeRightLabel;
 		ScopedPointer<Label> outputLeftLabel, outputMidLabel, outputSustainLabel, outputRightLabel;
-		ScopedPointer<UtilityButton> outputSenseButton;
+		ScopedPointer<ComboBox> outputSenseBox;
 		ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel, OutputJitterMidLabel, OutputJitterHighLabel, OutputJitterRightLabel;
 	};
 
