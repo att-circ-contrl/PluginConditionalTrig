@@ -146,6 +146,50 @@ namespace TTLConditionTrig
 	};
 
 
+	// GUI panel for adjusting one input or output's settings.
+	class TTLConditionalTriggerEditorConfigPanel : public Component, Button::Listener, Label::Listener, ComboBox::Listener
+	{
+	public:
+		TTLConditionalTriggerEditorConfigPanel(TTLConditionalTriggerEditor *newParent);
+
+		void buttonClicked(Button* theButton);
+		void labelTextChanged(Label* theLabel);
+		void comboBoxChanged(ComboBox* theBox);
+
+		void rebuildChannelSelect(StringArray &newInBankNames, Array<int> &newInBankIndices, Array<int> &newInBankBits);
+		// Use an input index of "-1" when editing outputs.
+		void setEditingState(int newInIdx, int newOutIdx, ConditionConfig &newConfig, bool newEnabled, int newChanIdx, int newBitIdx, std::string &newInputLabel, std::string &newOutputLabel);
+
+		// These are to let the parent pull state when editing has finished.
+		std::string getInputLabel();
+		std::string getOutputLabel();
+		int getInIdxEdited();
+		int getOutIdxEdited();
+
+	protected:
+		TTLConditionalTriggerEditor *parent;
+		int inIdx, outIdx;
+		bool editingInput;
+
+		Array<int> inBankIndices;
+		Array<int> inBankBits;
+
+		ConditionConfig thisConfig;
+		bool inputEnabled;
+		int inputChanIdx;
+		int inputBitIdx;
+		std::string thisInputLabel, thisOutputLabel;
+
+		ScopedPointer<Label> bannerLeftLabel, bannerEditLabel, bannerRightLabel;
+		ScopedPointer<Label> inputFeatureLabel, inputBitLabel, inputChanLabel;
+		ScopedPointer<ComboBox> inputFeatureBox, inputBitBox, inputChanBox;
+		ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel, inputTimeMidLabel, inputDeadtimeLabel, InputTimeRightLabel;
+		ScopedPointer<Label> outputLeftLabel, outputMidLabel, outputSustainLabel, outputRightLabel;
+		ScopedPointer<UtilityButton> outputSenseButton;
+		ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel, OutputJitterMidLabel, OutputJitterHighLabel, OutputJitterRightLabel;
+	};
+
+
 	// GUI tray for conditional trigger display and configuration.
 	// NOTE - GenericEditor already inherits from Timer.
 	class TTLConditionalTriggerEditor : public GenericEditor
@@ -214,15 +258,13 @@ namespace TTLConditionTrig
 		// GUI state variables.
 		int outputSelectIdx; // Which output tab we've selected.
 		int inputSelectIdx; // Which input we're editing.
-		bool editingInput; // Are we adjusting input settings?
-		bool editingOutput; // Are we adjusting output settings?
 		bool wasRunningLastRedraw; // To check for enable/disable updates.
 
 		// GUI elements.
 
 		ScopedPointer<TTLConditionalTriggerEditorInputPanel> inputStatusPanel;
 		ScopedPointer<TTLConditionalTriggerEditorOutputPanel> outputStatusPanel;
-//		ScopedPointer<Component> conditionEditPanel;
+		ScopedPointer<TTLConditionalTriggerEditorConfigPanel> configPanel;
 
 
 		// Internal accessors.

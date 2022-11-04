@@ -60,6 +60,8 @@
 // There's an empty row above the tabs to make this the same height as the input panel.
 #define TTLCONDTRIG_OUTPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
 
+#define TTLCONDTRIG_CONFIGPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
+
 
 // Magic constants for GUI colours.
 
