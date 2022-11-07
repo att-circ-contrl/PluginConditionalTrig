@@ -45,6 +45,28 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
 
 
     // Create GUI elements.
+    // NOTE - Leaving decorative labels enabled. Disabling greys them out; instead just ignore clicks.
+
+    bannerLeftLabel = new Label("Config Banner", "undefined");
+    bannerLeftLabel->setBounds(0, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGBANNER_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(bannerLeftLabel);
+
+    bannerRightLabel = new Label("", "Label:");
+    bannerRightLabel->setBounds(TTLCONDTRIG_CONFIGBANNER_XSIZE + TTLCONDTRIG_XGAP, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGLABELNOTE_XSIZE, TTLCONDTRIG_YSIZE);
+    bannerRightLabel->setJustificationType(Justification::centredRight);
+    addAndMakeVisible(bannerRightLabel);
+
+    bannerEditLabel = new Label("User Label", "undefined");
+    bannerEditLabel->setBounds(TTLCONDTRIG_CONFIGBANNER_XSIZE + TTLCONDTRIG_CONFIGLABELNOTE_XSIZE + TTLCONDTRIG_XGAP*2, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGLABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    bannerEditLabel->setEditable(true);
+    bannerEditLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
+    bannerEditLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
+    addAndMakeVisible(bannerEditLabel);
+
+    doneButton = new UtilityButton("Done", Font("Small Text", 13, Font::plain));
+    doneButton->setBounds(TTLCONDTRIG_CONFIGPANEL_XSIZE - TTLCONDTRIG_CONFIGDONE_XSIZE, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGDONE_XSIZE, TTLCONDTRIG_YSIZE);
+    doneButton->addListener(this);
+    addAndMakeVisible(doneButton);
 
 #if 0
 ScopedPointer<Label> bannerLeftLabel, bannerEditLabel, bannerRightLabel;
@@ -67,6 +89,9 @@ ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel,
 // This is the "done" button.
 void TTLConditionalTriggerEditorConfigPanel::buttonClicked(Button* theButton)
 {
+// FIXME - Need to push new config state here.
+// The parent pulls label information, but we need to push everything else to the plugin.
+    parent->clickedConditionExit();
 // FIXME - buttonClicked() NYI.
 }
 
@@ -102,6 +127,9 @@ void TTLConditionalTriggerEditorConfigPanel::rebuildChannelSelect(StringArray &n
 // Use an input index of "-1" when editing outputs.
 void TTLConditionalTriggerEditorConfigPanel::setEditingState(int newInIdx, int newOutIdx, ConditionConfig &newConfig, bool newEnabled, int newChanIdx, int newBitIdx, std::string &newInputLabel, std::string &newOutputLabel)
 {
+T_PRINT("setEditingState() called for config " << newOutIdx << ":" << newInIdx << ".");
+    // Store new configuration information.
+
     inIdx = newInIdx;
     outIdx = newOutIdx;
 
@@ -128,7 +156,8 @@ void TTLConditionalTriggerEditorConfigPanel::setEditingState(int newInIdx, int n
     if (inIdx >= TTLCONDTRIG_INPUTS)
         inIdx = 0;
 
-// FIXME - setEditingState() NYI!
+    // Update GUI state to reflect the new configuration.
+    refreshGui();
 }
 
 
@@ -153,6 +182,32 @@ int TTLConditionalTriggerEditorConfigPanel::getInIdxEdited()
 int TTLConditionalTriggerEditorConfigPanel::getOutIdxEdited()
 {
     return outIdx;
+}
+
+
+// This updates the contents of state-sensitive GUI elements.
+
+void TTLConditionalTriggerEditorConfigPanel::refreshGui()
+{
+T_PRINT("refreshGui() called.");
+
+    std::string scratchstr;
+    bool isOutput = (inIdx < 0);
+
+    // Banner row.
+
+    if (isOutput)
+        scratchstr = "Configuring output " + std::to_string(outIdx) + ".";
+    else
+        scratchstr = "Configuring input " + std::to_string(inIdx) + " for output " + std::to_string(outIdx) + ".";
+    bannerLeftLabel->setText(scratchstr, dontSendNotification);
+
+    if (isOutput)
+        bannerEditLabel->setText(thisOutputLabel, dontSendNotification);
+    else
+        bannerEditLabel->setText(thisInputLabel, dontSendNotification);
+
+    // FIXME - refreshGui() NYI.
 }
 
 

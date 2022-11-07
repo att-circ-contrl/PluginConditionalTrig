@@ -60,6 +60,14 @@
 // There's an empty row above the tabs to make this the same height as the input panel.
 #define TTLCONDTRIG_OUTPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
 
+#define TTLCONDTRIG_PLUGIN_XSIZE (TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE + TTLCONDTRIG_GLOBAL_XOFFSET*2)
+
+#define TTLCONDTRIG_CONFIGDONE_XSIZE 40
+#define TTLCONDTRIG_CONFIGBANNER_XSIZE 180
+#define TTLCONDTRIG_CONFIGLABEL_XSIZE 80
+#define TTLCONDTRIG_CONFIGLABELNOTE_XSIZE 40
+
+#define TTLCONDTRIG_CONFIGPANEL_XSIZE (TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE)
 #define TTLCONDTRIG_CONFIGPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
 
 
@@ -85,6 +93,9 @@
 #define LAMP_AMBER_HIGHLIGHT juce::Colours::white
 #define LAMP_OFF_FILL juce::Colours::darkgrey
 #define LAMP_OFF_HIGHLIGHT juce::Colours::grey
+
+#define TEXTEDIT_NORMAL juce::Colours::lightgrey
+#define TEXTEDIT_ACTIVE juce::Colours::white
 
 // This needs as many entries as we have outputs.
 // Original.

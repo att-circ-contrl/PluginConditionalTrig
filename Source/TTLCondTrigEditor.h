@@ -188,6 +188,8 @@ namespace TTLConditionTrig
 		ScopedPointer<Label> outputLeftLabel, outputMidLabel, outputSustainLabel, outputRightLabel;
 		ScopedPointer<ComboBox> outputSenseBox;
 		ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel, OutputJitterMidLabel, OutputJitterHighLabel, OutputJitterRightLabel;
+
+		void refreshGui();
 	};
 
 

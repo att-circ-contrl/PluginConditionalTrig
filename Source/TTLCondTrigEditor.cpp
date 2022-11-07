@@ -94,10 +94,10 @@ T_PRINT("Editor constructor called.");
 
     configPanel = new TTLConditionalTriggerEditorConfigPanel(this);
     addAndMakeVisible(configPanel);
-    configPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE, TTLCONDTRIG_CONFIGPANEL_YSIZE);
+    configPanel->setBounds(TTLCONDTRIG_GLOBAL_XOFFSET, TTLCONDTRIG_GLOBAL_YOFFSET, TTLCONDTRIG_CONFIGPANEL_XSIZE, TTLCONDTRIG_CONFIGPANEL_YSIZE);
     configPanel->setVisible(false);
 
-    setDesiredWidth(TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE + TTLCONDTRIG_GLOBAL_XOFFSET*2);
+    setDesiredWidth(TTLCONDTRIG_PLUGIN_XSIZE);
 
 
     // Set up coloured tabs.
