@@ -222,7 +222,24 @@ void TTLConditionalTriggerEditor::saveCustomParameters(XmlElement* xml)
 {
 T_PRINT("saveCustomParameters() called.");
 
-// FIXME - saveCustomParameters() NYI.
+    // The editor owns input and output label state. Everything else is owned by the plugin.
+    xml->setAttribute("Type", "TTLCondTrigEditor");
+
+    int inMatrixPtr = 0;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        XmlElement* thisOutputTag = xml->createNewChildElement("OutputLabel");
+        thisOutputTag->setAttribute("OutIndex", outIdx);
+        thisOutputTag->setAttribute("Label", outputLabels[outIdx]);
+
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        {
+            XmlElement* thisInputTag = thisOutputTag->createNewChildElement("InputLabel");
+            thisInputTag->setAttribute("InIndex", inIdx);
+            thisInputTag->setAttribute("Label", inputLabels[inMatrixPtr]);
+            inMatrixPtr++;
+        }
+    }
 }
 
 
@@ -232,7 +249,40 @@ void TTLConditionalTriggerEditor::loadCustomParameters(XmlElement* xml)
 {
 T_PRINT("loadCustomParameters() called.");
 
-// FIXME - loadCustomParameters() NYI.
+    // The editor owns input and output label state. Everything else is owned by the plugin.
+
+    forEachXmlChildElementWithTagName(*xml, outputElement, "OutputLabel")
+    {
+        int outIdx = outputElement->getIntAttribute("OutIndex");
+        if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+        {
+            String theLabel = outputElement->getStringAttribute("Label", "(undefined)");
+            outputLabels[outIdx] = theLabel.toStdString();
+// FIXME - Diagnostics.
+//T_PRINT(".. Setting output " << outIdx << " label to \"" << theLabel << "\".");
+        }
+        else
+        {
+            T_PRINT("###  Asked to set label for out-of-range output " << outIdx << ".");
+        }
+
+        forEachXmlChildElementWithTagName(*outputElement, inputElement, "InputLabel")
+        {
+            // Shadow the parent's outIdx value. Child's takes priority.
+            int inIdx = inputElement->getIntAttribute("InIndex");
+            if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS) && (inIdx >= 0) && (inIdx < TTLCONDTRIG_INPUTS))
+            {
+                String theLabel = inputElement->getStringAttribute("Label", "(undefined)");
+                inputLabels[inIdx + outIdx * TTLCONDTRIG_INPUTS] = theLabel.toStdString();
+// FIXME - Diagnostics.
+//T_PRINT(".. Setting input " << outIdx << ":" << inIdx << " label to \"" << theLabel << "\".");
+            }
+            else
+            {
+                T_PRINT("###  Asked to set label for out-of-range input with inIdx " << inIdx << " and outIdx " << outIdx << ".");
+            }
+        }
+    }
 }
 
 

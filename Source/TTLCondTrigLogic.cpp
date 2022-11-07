@@ -18,6 +18,9 @@ ConditionConfig::ConditionConfig()
 }
 
 
+// Default destructor is fine.
+
+
 // This sets a known-sane configuration state.
 void ConditionConfig::clear()
 {
@@ -35,7 +38,27 @@ void ConditionConfig::clear()
 }
 
 
-// Default destructor is fine.
+// This forces configuration parameters to be valid and self-consistent.
+void ConditionConfig::forceSanity()
+{
+    if ( (desiredFeature < ConditionConfig::levelHigh) || (desiredFeature > ConditionConfig::edgeFalling) )
+        desiredFeature = ConditionConfig::levelHigh;
+
+    if (delayMinSamps < 0)
+        delayMinSamps = 0;
+
+    if (delayMaxSamps < delayMinSamps)
+        delayMaxSamps = delayMinSamps;
+
+    if (sustainSamps < 1)
+        sustainSamps = 1;
+
+    if (deadTimeSamps < 0)
+        deadTimeSamps = 0;
+
+    if (deglitchSamps < 0)
+        deglitchSamps = 0;
+}
 
 
 //

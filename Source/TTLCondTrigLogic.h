@@ -36,6 +36,8 @@ namespace TTLConditionTrig
 
 		// This sets a known-sane configuration state.
 		void clear();
+		// This forces configuration parameters to be valid and self-consistent.
+		void forceSanity();
 	};
 
 

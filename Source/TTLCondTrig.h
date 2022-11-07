@@ -80,6 +80,10 @@ namespace TTLConditionTrig
 		// NOTE - This is owned by Open Ephys, not us. So it can't be a ScopedPointer.
 		EventChannel *outputEventChan;
 
+		// Helper functions for saving/loading condition configurations.
+		void saveLogicToXml(XmlElement* theTag, ConditionConfig theConfig);
+		ConditionConfig loadLogicFromXml(XmlElement* theTag);
+
 	private:
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTrigger);
 	};

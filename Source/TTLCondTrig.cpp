@@ -273,7 +273,37 @@ void TTLConditionalTrigger::saveCustomParametersToXml(XmlElement* parentElement)
 {
 T_PRINT("saveCustomParametersToXml() called.");
 
-// FIXME - saveCustomParametersToXml() NYI.
+    // The editor owns input and output labels. We own everything else.
+
+    parentElement->setAttribute("Type", "TTLCondTrig");
+
+    int inMatrixPtr = 0;
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        XmlElement* thisOutputTag = parentElement->createNewChildElement("TTLOutput");
+
+        thisOutputTag->setAttribute("OutIndex", outIdx);
+        thisOutputTag->setAttribute("IsEnabled", isOutputEnabled[outIdx]);
+        thisOutputTag->setAttribute("NeedAllInputs", needAllInputs[outIdx]);
+
+        XmlElement* thisOutputConfig = thisOutputTag->createNewChildElement("LogicConfig");
+        saveLogicToXml(thisOutputConfig, outputConditions[outIdx].getConfig());
+
+        for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        {
+            XmlElement* thisInputTag = thisOutputTag->createNewChildElement("TTLInput");
+
+            thisInputTag->setAttribute("InIndex", inIdx);
+            thisInputTag->setAttribute("IsEnabled", isInputEnabled[inMatrixPtr]);
+            thisInputTag->setAttribute("TTLChan", inputChanIdx[inMatrixPtr]);
+            thisInputTag->setAttribute("TTLBit", inputBitIdx[inMatrixPtr]);
+
+            XmlElement* thisInputConfig = thisInputTag->createNewChildElement("LogicConfig");
+            saveLogicToXml(thisInputConfig, inputConditions[inMatrixPtr].getConfig());
+
+            inMatrixPtr++;
+        }
+    }
 }
 
 
@@ -283,7 +313,54 @@ void TTLConditionalTrigger::loadCustomParametersFromXml()
 {
 T_PRINT("loadCustomParametersFromXml() called.");
 
-// FIXME - loadCustomParametersFromXml() NYI.
+    // The editor owns input and output labels. We own everything else.
+
+    forEachXmlChildElementWithTagName(*parametersAsXml, thisOutputTag, "TTLOutput")
+    {
+        int outIdx = thisOutputTag->getIntAttribute("OutIndex");
+
+        if ((outIdx < 0) || (outIdx >= TTLCONDTRIG_OUTPUTS))
+        {
+T_PRINT("###  Asked to load configuration for out-of-range output " << outIdx << ".");
+        }
+        else
+        {
+            isOutputEnabled[outIdx] = thisOutputTag->getBoolAttribute("IsEnabled");
+            needAllInputs[outIdx] = thisOutputTag->getBoolAttribute("NeedAllInputs");
+
+            // There should be exactly one output configuration tag.
+            forEachXmlChildElementWithTagName(*thisOutputTag, thisOutputLogicTag, "LogicConfig")
+            {
+                ConditionConfig thisConfig = loadLogicFromXml(thisOutputLogicTag);
+                outputConditions[outIdx].setConfig(thisConfig);
+            }
+
+            forEachXmlChildElementWithTagName(*thisOutputTag, thisInputTag, "TTLInput")
+            {
+                int inIdx = thisInputTag->getIntAttribute("InIndex");
+
+                if ((inIdx < 0) || (inIdx >= TTLCONDTRIG_INPUTS))
+                {
+T_PRINT("###  Asked to load configuration for out-of-range input " << outIdx << ":" << inIdx << ".");
+                }
+                else
+                {
+                    int inMatrixPtr = inIdx + outIdx * TTLCONDTRIG_INPUTS;
+
+                    isInputEnabled[inMatrixPtr] = thisInputTag->getBoolAttribute("IsEnabled");
+                    inputChanIdx[inMatrixPtr] = thisInputTag->getIntAttribute("TTLChan");
+                    inputBitIdx[inMatrixPtr] = thisInputTag->getIntAttribute("TTLBit");
+
+                    // There should be exactly one input configuration tag.
+                    forEachXmlChildElementWithTagName(*thisInputTag, thisInputLogicTag, "LogicConfig")
+                    {
+                        ConditionConfig thisConfig = loadLogicFromXml(thisInputLogicTag);
+                        inputConditions[inMatrixPtr].setConfig(thisConfig);
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -373,6 +450,56 @@ void TTLConditionalTrigger::pushFullStateToDisplay()
 
     // Propagate the running state as well.
     pushRunningStateToDisplay();
+}
+
+
+// This saves a condition configuration structure as attributes in an XML tag.
+void TTLConditionalTrigger::saveLogicToXml(XmlElement* theTag, ConditionConfig theConfig)
+{
+    // NOTE - Attribute values are clamped to "int" range. Live with this.
+    theTag->setAttribute("Feature", theConfig.desiredFeature);
+    theTag->setAttribute("DelayMin", (int) theConfig.delayMinSamps);
+    theTag->setAttribute("DelayMax", (int) theConfig.delayMaxSamps);
+    theTag->setAttribute("SustainTime", (int) theConfig.sustainSamps);
+    theTag->setAttribute("DeadTime", (int) theConfig.deadTimeSamps);
+    theTag->setAttribute("DeglitchTime", (int) theConfig.deglitchSamps);
+    theTag->setAttribute("ActiveHigh", theConfig.outputActiveHigh);
+}
+
+
+// This rebuilds a condition configuration structure from attributes in an XML tag.
+ConditionConfig TTLConditionalTrigger::loadLogicFromXml(XmlElement* theTag)
+{
+    ConditionConfig theConfig;
+
+    theConfig.clear();
+
+    // Ignore anything we don't understand and leave anything not set as its default value.
+
+    if (theTag->hasAttribute("Feature"))
+        theConfig.desiredFeature = (ConditionConfig::FeatureType) (theTag->getIntAttribute("Feature"));
+
+    if (theTag->hasAttribute("DelayMin"))
+        theConfig.delayMinSamps = theTag->getIntAttribute("DelayMin");
+
+    if (theTag->hasAttribute("DelayMax"))
+        theConfig.delayMaxSamps = theTag->getIntAttribute("DelayMax");
+
+    if (theTag->hasAttribute("SustainTime"))
+        theConfig.sustainSamps = theTag->getIntAttribute("SustainTime");
+
+    if (theTag->hasAttribute("DeadTime"))
+        theConfig.deadTimeSamps = theTag->getIntAttribute("SustainTime");
+
+    if (theTag->hasAttribute("DeglitchTime"))
+        theConfig.deglitchSamps = theTag->getIntAttribute("DeglitchTime");
+
+    if (theTag->hasAttribute("ActiveHigh"))
+        theConfig.outputActiveHigh = theTag->getBoolAttribute("ActiveHigh");
+
+    theConfig.forceSanity();
+
+    return theConfig;
 }
 
 
