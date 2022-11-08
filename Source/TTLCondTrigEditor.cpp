@@ -372,7 +372,7 @@ T_PRINT("clickedAnyAll() called.");
 }
 
 
-// Accessor for switching to editing conditions for an ouput.
+// Accessor for switching to editing conditions for an output.
 void TTLConditionalTriggerEditor::clickedOutputEnableToggle(int idxClicked)
 {
 T_PRINT("clickedOutputEnableToggle() called for output " << idxClicked << ".");
@@ -387,7 +387,7 @@ T_PRINT("Setting output enable for " << idxClicked << " to " << newEnabled << ".
 }
 
 
-// Accessor for switching to editing conditions for an ouput.
+// Accessor for switching to editing conditions for an output.
 void TTLConditionalTriggerEditor::clickedOutputSettings(int idxClicked)
 {
 T_PRINT("clickedOutputSettings() called for output " << idxClicked << ".");
@@ -425,21 +425,53 @@ void TTLConditionalTriggerEditor::clickedConditionExit()
 {
 T_PRINT("clickedConditionExit() called.");
 
-    // Pull any changes to label configuration.
-
+    // Figure out what we were just editing.
     int inIdx = configPanel->getInIdxEdited();
     int outIdx = configPanel->getOutIdxEdited();
-    if (inIdx >= 0)
-    {
-        int inMatrixPtr = inIdx + outIdx * TTLCONDTRIG_INPUTS;
+    bool isInput = (inIdx >= 0);
+    int inMatrixPtr = 0;
+    if (isInput)
+        inMatrixPtr = inIdx + outIdx * TTLCONDTRIG_INPUTS;
+// Diagnostics.
+T_PRINT("Got inIdx " << (isInput ? "*" : "") << inIdx << ", outIdx " << (isInput ? "" : "*") << outIdx << ", matrixIdx " << inMatrixPtr << ".");
+
+    // Pull any changes to the label configuration (we own this).
+
+    if (isInput)
         inputLabels[inMatrixPtr] = configPanel->getInputLabel();
-    }
     else
         outputLabels[outIdx] = configPanel->getOutputLabel();
 
-    // Pull logic configuration changes and push them to the plugin.
+    // Pull logic configuration changes and push them to the plugin (the plugin owns them).
 
-// FIXME - Logic config pull NYI.
+    ConditionConfig thisConfig = configPanel->getConfig();
+
+    if (isInput)
+    {
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_IS_ENABLED, configPanel->getEnabled());
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_CHAN_IDX, configPanel->getInputChan());
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_BIT_IDX, configPanel->getInputBit());
+
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_INFEATURE, thisConfig.desiredFeature);
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_DELAY_MIN, thisConfig.delayMinSamps);
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_DELAY_MAX, thisConfig.delayMaxSamps);
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_SUSTAIN, thisConfig.sustainSamps);
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_DEADTIME, thisConfig.deadTimeSamps);
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_DEGLITCH, thisConfig.deglitchSamps);
+        parent->setInputParamByChan(outIdx, inIdx, TTLCONDTRIG_PARAM_OUTSENSE, (thisConfig.outputActiveHigh ? 1 : 0));
+    }
+    else
+    {
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_IS_ENABLED, configPanel->getEnabled());
+
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_INFEATURE, thisConfig.desiredFeature);
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_DELAY_MIN, thisConfig.delayMinSamps);
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_DELAY_MAX, thisConfig.delayMaxSamps);
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_SUSTAIN, thisConfig.sustainSamps);
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_DEADTIME, thisConfig.deadTimeSamps);
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_DEGLITCH, thisConfig.deglitchSamps);
+        parent->setOutputParamByChan(outIdx, TTLCONDTRIG_PARAM_OUTSENSE, (thisConfig.outputActiveHigh ? 1 : 0));
+    }
 
     // Update GUI state.
 

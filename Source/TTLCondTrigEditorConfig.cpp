@@ -68,6 +68,7 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     bannerEditLabel->setEditable(true);
     bannerEditLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
     bannerEditLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
+    bannerEditLabel->addListener(this);
     addAndMakeVisible(bannerEditLabel);
 
     xpos = TTLCONDTRIG_CONFIGPANEL_XSIZE - TTLCONDTRIG_CONFIGDONE_XSIZE;
@@ -175,7 +176,20 @@ void TTLConditionalTriggerEditorConfigPanel::buttonClicked(Button* theButton)
 // This is the channel label or one of several timing values.
 void TTLConditionalTriggerEditorConfigPanel::labelTextChanged(Label* theLabel)
 {
+    String thisTextJuce = theLabel->getText();
+    std::string thisText = thisTextJuce.toStdString();
+    bool isOutput = (inIdx < 0);
+
+    if (theLabel == bannerEditLabel)
+    {
+        if (isOutput)
+            thisOutputLabel = thisText;
+        else
+            thisInputLabel = thisText;
+    }
 // FIXME - labelTextChanged() NYI.
+
+    refreshGui();
 }
 
 
