@@ -372,7 +372,11 @@ T_PRINT("refreshGui() called.");
     if (isOutput)
         scratchstr = "Configuring output " + std::to_string(outIdx) + ".";
     else
-        scratchstr = "Configuring input " + std::to_string(inIdx) + " for output " + std::to_string(outIdx) + ".";
+    {
+        scratchstr = "Configuring input " + std::to_string(inIdx) + " for output ";
+        scratchstr += ('A' + outIdx);
+        scratchstr += ".";
+    }
     bannerLeftLabel->setText(scratchstr, dontSendNotification);
 
     if (isOutput)
