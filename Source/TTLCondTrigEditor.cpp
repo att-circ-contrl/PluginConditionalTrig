@@ -47,7 +47,6 @@ T_PRINT("Editor constructor called.");
 
         outputLampState[outIdx] = false;
 
-//        outputLabels[outIdx] = "unnamed";
         scratchstring = "Output ";
         scratchstring += ('A' + outIdx);
         outputLabels[outIdx] = scratchstring;
@@ -62,7 +61,6 @@ T_PRINT("Editor constructor called.");
             inputRawLampState[inMatrixPtr] = false;
             inputCookedLampState[inMatrixPtr] = false;
 
-//            inputLabels[inMatrixPtr] = "unnamed";
             scratchstring = "Input ";
             scratchstring += ('A' + outIdx);
             scratchstring += std::to_string(inIdx);
@@ -438,6 +436,10 @@ T_PRINT("clickedConditionExit() called.");
     }
     else
         outputLabels[outIdx] = configPanel->getOutputLabel();
+
+    // Pull logic configuration changes and push them to the plugin.
+
+// FIXME - Logic config pull NYI.
 
     // Update GUI state.
 

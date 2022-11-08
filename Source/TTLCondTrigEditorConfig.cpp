@@ -36,7 +36,7 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     inBankBits.clear();
 
     thisConfig.clear();
-    inputEnabled = false;
+    thisEnabled = false;
     inputChanIdx = 0;
     inputBitIdx = 0;
 
@@ -47,30 +47,101 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     // Create GUI elements.
     // NOTE - Leaving decorative labels enabled. Disabling greys them out; instead just ignore clicks.
 
-    bannerLeftLabel = new Label("Config Banner", "undefined");
-    bannerLeftLabel->setBounds(0, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGBANNER_XSIZE, TTLCONDTRIG_YSIZE);
+    int xpos = 0;
+    int ypos = TTLCONDTRIG_YGAP;
+
+    // Banner row.
+
+    bannerLeftLabel = new Label("", "undefined");
+    bannerLeftLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGBANNER_XSIZE, TTLCONDTRIG_YSIZE);
     addAndMakeVisible(bannerLeftLabel);
+    xpos += TTLCONDTRIG_CONFIGBANNER_XSIZE + TTLCONDTRIG_XGAP;
 
     bannerRightLabel = new Label("", "Label:");
-    bannerRightLabel->setBounds(TTLCONDTRIG_CONFIGBANNER_XSIZE + TTLCONDTRIG_XGAP, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGLABELNOTE_XSIZE, TTLCONDTRIG_YSIZE);
+    bannerRightLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGLABELNOTE_XSIZE, TTLCONDTRIG_YSIZE);
     bannerRightLabel->setJustificationType(Justification::centredRight);
     addAndMakeVisible(bannerRightLabel);
+    xpos += TTLCONDTRIG_CONFIGLABELNOTE_XSIZE + TTLCONDTRIG_XGAP;
 
     bannerEditLabel = new Label("User Label", "undefined");
-    bannerEditLabel->setBounds(TTLCONDTRIG_CONFIGBANNER_XSIZE + TTLCONDTRIG_CONFIGLABELNOTE_XSIZE + TTLCONDTRIG_XGAP*2, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGLABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    bannerEditLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGLABEL_XSIZE, TTLCONDTRIG_YSIZE);
     bannerEditLabel->setEditable(true);
     bannerEditLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
     bannerEditLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
     addAndMakeVisible(bannerEditLabel);
 
+    xpos = TTLCONDTRIG_CONFIGPANEL_XSIZE - TTLCONDTRIG_CONFIGDONE_XSIZE;
     doneButton = new UtilityButton("Done", Font("Small Text", 13, Font::plain));
-    doneButton->setBounds(TTLCONDTRIG_CONFIGPANEL_XSIZE - TTLCONDTRIG_CONFIGDONE_XSIZE, TTLCONDTRIG_YGAP, TTLCONDTRIG_CONFIGDONE_XSIZE, TTLCONDTRIG_YSIZE);
+    doneButton->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGDONE_XSIZE, TTLCONDTRIG_YSIZE);
     doneButton->addListener(this);
     addAndMakeVisible(doneButton);
 
+    // Feature/enable/source row.
+
+    connectOnImage = new Connected16Image(CONN_BACKGROUND, CONN_FOREGROUND);
+    connectOffImage = new Disconnected16Image(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
+
+    xpos = TTLCONDTRIG_XGAP;
+    ypos += TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP;
+
+    enableButton = new ImageButton;
+    // Images are normal, hover-over, and pressed.
+    // Tuples are image, image opacity, and overlay colour.
+    enableButton->setImages(true, true, true, *connectOffImage, 1.0, COLOUR_TRANSPARENT, *connectOffImage, 1.0, COLOUR_TRANSPARENT, *connectOnImage, 0.5, COLOUR_TRANSPARENT);
+    enableButton->setBounds(xpos, ypos, TTLCONDTRIG_CONN_SIZE, TTLCONDTRIG_CONN_SIZE);
+    enableButton->setClickingTogglesState(true);
+    enableButton->addListener(this);
+    addAndMakeVisible(enableButton);
+    xpos += TTLCONDTRIG_CONN_SIZE;
+
+    enabledLabel = new Label("", "Disabled");
+    enabledLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGENABLELABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(enabledLabel);
+    xpos += TTLCONDTRIG_CONFIGENABLELABEL_XSIZE + TTLCONDTRIG_XGAP;
+
+    inputFeatureLabel = new Label("", "Want");
+    inputFeatureLabel->setJustificationType(Justification::centredRight);
+    inputFeatureLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGFEATURELABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(inputFeatureLabel);
+    xpos += TTLCONDTRIG_CONFIGFEATURELABEL_XSIZE;
+
+    inputFeatureBox = new ComboBox;
+    inputFeatureBox->addItem("high", ConditionConfig::levelHigh + TTLCONDTRIG_COMBOBOX_OFFSET);
+    inputFeatureBox->addItem("low", ConditionConfig::levelLow + TTLCONDTRIG_COMBOBOX_OFFSET);
+    inputFeatureBox->addItem("rising", ConditionConfig::edgeRising + TTLCONDTRIG_COMBOBOX_OFFSET);
+    inputFeatureBox->addItem("falling", ConditionConfig::edgeFalling + TTLCONDTRIG_COMBOBOX_OFFSET);
+    inputFeatureBox->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGFEATURE_XSIZE, TTLCONDTRIG_YSIZE);
+    inputFeatureBox->addListener(this);
+    addAndMakeVisible(inputFeatureBox);
+    xpos += TTLCONDTRIG_CONFIGFEATURE_XSIZE + TTLCONDTRIG_XGAP;
+
+    inputChanLabel = new Label("", "from bank");
+    inputChanLabel->setJustificationType(Justification::centredRight);
+    inputChanLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGBANKLABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(inputChanLabel);
+    xpos += TTLCONDTRIG_CONFIGBANKLABEL_XSIZE;
+
+    inputChanBox = new ComboBox;
+    inputChanBox->addItem("none", TTLCONDTRIG_CHANIDX_NONE + TTLCONDTRIG_COMBOBOX_OFFSET);
+    inputChanBox->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGBANK_XSIZE, TTLCONDTRIG_YSIZE);
+    inputChanBox->addListener(this);
+    addAndMakeVisible(inputChanBox);
+    xpos += TTLCONDTRIG_CONFIGBANK_XSIZE + TTLCONDTRIG_XGAP;
+
+    inputBitLabel = new Label("", "bit");
+    inputBitLabel->setJustificationType(Justification::centredRight);
+    inputBitLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGBITLABEL_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(inputBitLabel);
+    xpos += TTLCONDTRIG_CONFIGBITLABEL_XSIZE;
+
+    inputBitBox = new ComboBox;
+    inputBitBox->addItem("none", TTLCONDTRIG_BITIDX_NONE + TTLCONDTRIG_COMBOBOX_OFFSET);
+    inputBitBox->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGBIT_XSIZE, TTLCONDTRIG_YSIZE);
+    inputBitBox->addListener(this);
+    addAndMakeVisible(inputBitBox);
+    xpos += TTLCONDTRIG_CONFIGBIT_XSIZE + TTLCONDTRIG_XGAP;
+
 #if 0
-ScopedPointer<Label> bannerLeftLabel, bannerEditLabel, bannerRightLabel;
-ScopedPointer<UtilityButton> doneButton;
 ScopedPointer<Label> inputFeatureLabel, inputBitLabel, inputChanLabel;
 ScopedPointer<ComboBox> inputFeatureBox, inputBitBox, inputChanBox;
 ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel,
@@ -86,13 +157,17 @@ ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel,
 
 
 // Button click callback.
-// This is the "done" button.
+// This is the "done" button or the "enable" button.
 void TTLConditionalTriggerEditorConfigPanel::buttonClicked(Button* theButton)
 {
-// FIXME - Need to push new config state here.
-// The parent pulls label information, but we need to push everything else to the plugin.
-    parent->clickedConditionExit();
-// FIXME - buttonClicked() NYI.
+    if (theButton == doneButton)
+        // The parent pulls configuration state here, and forwards it to the plugin.
+        parent->clickedConditionExit();
+    else if (theButton == enableButton)
+    {
+        thisEnabled = !thisEnabled;
+        refreshGui();
+    }
 }
 
 
@@ -108,6 +183,22 @@ void TTLConditionalTriggerEditorConfigPanel::labelTextChanged(Label* theLabel)
 // This is input feature, input bank/bit, or output sense.
 void TTLConditionalTriggerEditorConfigPanel::comboBoxChanged(ComboBox* theBox)
 {
+    int selectedId = theBox->getSelectedId() - TTLCONDTRIG_COMBOBOX_OFFSET;
+
+    if (theBox == inputFeatureBox)
+    {
+        thisConfig.desiredFeature = (ConditionConfig::FeatureType) selectedId;
+        thisConfig.forceSanity();
+    }
+    else if (theBox == inputChanBox)
+    {
+        inputChanIdx = selectedId;
+        rebuildBitSelect();
+    }
+    else if (theBox == inputBitBox)
+    {
+        inputBitIdx = selectedId;
+    }
 // FIXME - comboBoxChanged() NYI.
 }
 
@@ -115,11 +206,29 @@ void TTLConditionalTriggerEditorConfigPanel::comboBoxChanged(ComboBox* theBox)
 // This updates the contents of the channel selection combo box, and stores channel metadata.
 void TTLConditionalTriggerEditorConfigPanel::rebuildChannelSelect(StringArray &newInBankNames, Array<int> &newInBankIndices, Array<int> &newInBankBits)
 {
+T_PRINT("rebuildChannelSelect() called.");
+
     // These will copy by value.
     inBankIndices = newInBankIndices;
     inBankBits = newInBankBits;
 
-// FIXME - rebuildChannelSelect() NYI.
+    // Rebuild the channel select combobox.
+    inputChanBox->clear(dontSendNotification);
+    inputChanBox->addItem("none", TTLCONDTRIG_CHANIDX_NONE + TTLCONDTRIG_COMBOBOX_OFFSET);
+    for (int chanIdx = 0; chanIdx < inBankIndices.size(); chanIdx++)
+    {
+        int thisChanNum = inBankIndices[chanIdx];
+        std::string thisChanLabel = std::to_string(thisChanNum) + "-";
+        thisChanLabel += newInBankNames[chanIdx].toStdString();
+        inputChanBox->addItem(thisChanLabel, thisChanNum + TTLCONDTRIG_COMBOBOX_OFFSET);
+    }
+
+    // Make sure we're still pointing towards a valid channel.
+    if (!( inBankIndices.indexOf(inputChanIdx) >= 0 ))
+        inputChanIdx = TTLCONDTRIG_CHANIDX_NONE;
+
+    // Rebuild the bit select combobox.
+    rebuildBitSelect();
 }
 
 
@@ -128,6 +237,7 @@ void TTLConditionalTriggerEditorConfigPanel::rebuildChannelSelect(StringArray &n
 void TTLConditionalTriggerEditorConfigPanel::setEditingState(int newInIdx, int newOutIdx, ConditionConfig &newConfig, bool newEnabled, int newChanIdx, int newBitIdx, std::string &newInputLabel, std::string &newOutputLabel)
 {
 T_PRINT("setEditingState() called for config " << newOutIdx << ":" << newInIdx << ".");
+
     // Store new configuration information.
 
     inIdx = newInIdx;
@@ -135,7 +245,7 @@ T_PRINT("setEditingState() called for config " << newOutIdx << ":" << newInIdx <
 
     thisConfig = newConfig;
 
-    inputEnabled = newEnabled;
+    thisEnabled = newEnabled;
     inputChanIdx = newChanIdx;
     inputBitIdx = newBitIdx;
 
@@ -156,6 +266,8 @@ T_PRINT("setEditingState() called for config " << newOutIdx << ":" << newInIdx <
     if (inIdx >= TTLCONDTRIG_INPUTS)
         inIdx = 0;
 
+    // Propagate channel selection changes.
+    rebuildBitSelect();
     // Update GUI state to reflect the new configuration.
     refreshGui();
 }
@@ -184,6 +296,53 @@ int TTLConditionalTriggerEditorConfigPanel::getOutIdxEdited()
     return outIdx;
 }
 
+ConditionConfig TTLConditionalTriggerEditorConfigPanel::getConfig()
+{
+    return thisConfig;
+}
+
+bool TTLConditionalTriggerEditorConfigPanel::getEnabled()
+{
+    return thisEnabled;
+}
+
+int TTLConditionalTriggerEditorConfigPanel::getInputChan()
+{
+    return inputChanIdx;
+}
+
+int TTLConditionalTriggerEditorConfigPanel::getInputBit()
+{
+    return inputBitIdx;
+}
+
+
+// This rebuilds the bit-select combobox to match the selected input bank.
+
+void TTLConditionalTriggerEditorConfigPanel::rebuildBitSelect()
+{
+T_PRINT("rebuildBitSelect() called.");
+
+    inputBitBox->clear(dontSendNotification);
+    inputBitBox->addItem("none", TTLCONDTRIG_BITIDX_NONE + TTLCONDTRIG_COMBOBOX_OFFSET);
+
+    int lutIdx = inBankIndices.indexOf(inputChanIdx);
+// FIXME - Diagnostics.
+T_PRINT("chan idx " << inputChanIdx << "   bit idx " << inputBitIdx << " lut idx " << lutIdx);
+    if (lutIdx >= 0)
+    {
+        int bitCount = inBankBits[lutIdx];
+T_PRINT("Input bank " << inputChanIdx << " has " << bitCount << " bits.");
+
+        for (int bitIdx = 0; bitIdx < bitCount; bitIdx++)
+            inputBitBox->addItem(std::to_string(bitIdx), bitIdx + TTLCONDTRIG_COMBOBOX_OFFSET);
+
+        // Make sure our bit selection is still a valid ID.
+        if ((inputBitIdx < 0) || (inputBitIdx >= bitCount))
+            inputBitIdx = TTLCONDTRIG_BITIDX_NONE;
+    }
+}
+
 
 // This updates the contents of state-sensitive GUI elements.
 
@@ -206,6 +365,28 @@ T_PRINT("refreshGui() called.");
         bannerEditLabel->setText(thisOutputLabel, dontSendNotification);
     else
         bannerEditLabel->setText(thisInputLabel, dontSendNotification);
+
+    // Feature/enable/source row.
+
+    enableButton->setToggleState(thisEnabled, dontSendNotification);
+    enabledLabel->setText( (thisEnabled ? "Enabled" : "Disabled"), dontSendNotification );
+
+    inputFeatureBox->setSelectedId( thisConfig.desiredFeature + TTLCONDTRIG_COMBOBOX_OFFSET, dontSendNotification );
+    inputChanBox->setSelectedId( inputChanIdx + TTLCONDTRIG_COMBOBOX_OFFSET, dontSendNotification );
+    inputBitBox->setSelectedId( inputBitIdx + TTLCONDTRIG_COMBOBOX_OFFSET, dontSendNotification );
+
+    inputChanLabel->setVisible(editingInput);
+    inputChanLabel->setEnabled(editingInput);
+    inputChanBox->setVisible(editingInput);
+    inputChanBox->setEnabled(editingInput);
+    inputBitLabel->setVisible(editingInput);
+    inputBitLabel->setEnabled(editingInput);
+    inputBitBox->setVisible(editingInput);
+    inputBitBox->setEnabled(editingInput);
+
+
+    // Force a redraw.
+    repaint();
 
     // FIXME - refreshGui() NYI.
 }

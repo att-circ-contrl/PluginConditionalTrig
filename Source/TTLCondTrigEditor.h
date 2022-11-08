@@ -165,6 +165,10 @@ namespace TTLConditionTrig
 		std::string getOutputLabel();
 		int getInIdxEdited();
 		int getOutIdxEdited();
+		ConditionConfig getConfig();
+		bool getEnabled();
+		int getInputChan();
+		int getInputBit();
 
 	protected:
 		TTLConditionalTriggerEditor *parent;
@@ -175,20 +179,24 @@ namespace TTLConditionTrig
 		Array<int> inBankBits;
 
 		ConditionConfig thisConfig;
-		bool inputEnabled;
+		bool thisEnabled;
 		int inputChanIdx;
 		int inputBitIdx;
 		std::string thisInputLabel, thisOutputLabel;
 
+		ScopedPointer<Image> connectOnImage, connectOffImage;
+
 		ScopedPointer<Label> bannerLeftLabel, bannerEditLabel, bannerRightLabel;
 		ScopedPointer<UtilityButton> doneButton;
-		ScopedPointer<Label> inputFeatureLabel, inputBitLabel, inputChanLabel;
+		ScopedPointer<Label> enabledLabel, inputFeatureLabel, inputBitLabel, inputChanLabel;
+		ScopedPointer<ImageButton> enableButton;
 		ScopedPointer<ComboBox> inputFeatureBox, inputBitBox, inputChanBox;
 		ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel, inputTimeMidLabel, inputDeadtimeLabel, InputTimeRightLabel;
 		ScopedPointer<Label> outputLeftLabel, outputMidLabel, outputSustainLabel, outputRightLabel;
 		ScopedPointer<ComboBox> outputSenseBox;
 		ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel, OutputJitterMidLabel, OutputJitterHighLabel, OutputJitterRightLabel;
 
+		void rebuildBitSelect();
 		void refreshGui();
 	};
 
