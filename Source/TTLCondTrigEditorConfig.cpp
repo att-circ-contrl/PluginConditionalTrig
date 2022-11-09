@@ -64,12 +64,6 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     bannerEditLabel->addListener(this);
     addAndMakeVisible(bannerEditLabel);
 
-    xpos = TTLCONDTRIG_CONFIGPANEL_XSIZE - TTLCONDTRIG_CONFIGDONE_XSIZE;
-    doneButton = new UtilityButton("Done", Font("Small Text", 13, Font::plain));
-    doneButton->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGDONE_XSIZE, TTLCONDTRIG_YSIZE);
-    doneButton->addListener(this);
-    addAndMakeVisible(doneButton);
-
     // Feature/enable/source row.
 
     connectOnImage = new Connected16Image(CONN_BACKGROUND, CONN_FOREGROUND);
@@ -210,14 +204,70 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     addAndMakeVisible(outputRightLabel);
     xpos += TTLCONDTRIG_CONFIGOUTHILORIGHT_XSIZE;
 
-#if 0
-ScopedPointer<Label> outputLeftLabel, outputMidLabel,
-  outputSustainLabel, outputRightLabel;
-ScopedPointer<ComboBox> outputSenseBox;
-ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel,
-  OutputJitterMidLabel, OutputJitterHighLabel, OutputJitterRightLabel;
-#endif
-// FIXME - Constructor NYI.
+    // Output delay row.
+
+    xpos = TTLCONDTRIG_XGAP;
+    ypos += TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP;
+
+    outputJitterLeftLabel = new Label("", "Delay");
+    outputJitterLeftLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGOUTDELAYLEFT_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(outputJitterLeftLabel);
+    xpos += TTLCONDTRIG_CONFIGOUTDELAYLEFT_XSIZE + TTLCONDTRIG_XGAP;
+
+    outputJitterLowLabel = new Label("", "0");
+    outputJitterLowLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGMS_XSIZE, TTLCONDTRIG_YSIZE);
+    outputJitterLowLabel->setEditable(true);
+    outputJitterLowLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
+    outputJitterLowLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
+    outputJitterLowLabel->addListener(this);
+    addAndMakeVisible(outputJitterLowLabel);
+    xpos += TTLCONDTRIG_CONFIGMS_XSIZE;
+
+    outputJitterMidLabel = new Label("", "ms to");
+    outputJitterMidLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGOUTDELAYMID_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(outputJitterMidLabel);
+    xpos += TTLCONDTRIG_CONFIGOUTDELAYMID_XSIZE + TTLCONDTRIG_XGAP;
+
+    outputJitterHighLabel = new Label("", "0");
+    outputJitterHighLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGMS_XSIZE, TTLCONDTRIG_YSIZE);
+    outputJitterHighLabel->setEditable(true);
+    outputJitterHighLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
+    outputJitterHighLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
+    outputJitterHighLabel->addListener(this);
+    addAndMakeVisible(outputJitterHighLabel);
+    xpos += TTLCONDTRIG_CONFIGMS_XSIZE;
+
+    outputJitterRightLabel = new Label("", "ms after trigger");
+    outputJitterRightLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGOUTDELAYRIGHT_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(outputJitterRightLabel);
+    xpos += TTLCONDTRIG_CONFIGOUTDELAYRIGHT_XSIZE;
+
+    // "Help" and "Done" buttons.
+
+    xpos = TTLCONDTRIG_CONFIGPANEL_XSIZE;
+    ypos = TTLCONDTRIG_CONFIGPANEL_YSIZE - TTLCONDTRIG_YGAP;
+
+    doneButton = new UtilityButton("Done", Font("Small Text", 13, Font::plain));
+    doneButton->setBounds(xpos - TTLCONDTRIG_CONFIGDONE_XSIZE, ypos - TTLCONDTRIG_CONFIGDONE_YSIZE, TTLCONDTRIG_CONFIGDONE_XSIZE, TTLCONDTRIG_CONFIGDONE_YSIZE);
+    doneButton->addListener(this);
+    addAndMakeVisible(doneButton);
+    xpos -= TTLCONDTRIG_CONFIGDONE_XSIZE + TTLCONDTRIG_XGAP;
+
+    helpButton = new UtilityButton("Help", Font("Small Text", 13, Font::plain));
+    helpButton->setBounds(xpos - TTLCONDTRIG_CONFIGHELP_XSIZE, ypos - TTLCONDTRIG_CONFIGHELP_YSIZE, TTLCONDTRIG_CONFIGHELP_XSIZE, TTLCONDTRIG_CONFIGHELP_YSIZE);
+    helpButton->addListener(this);
+    addAndMakeVisible(helpButton);
+    xpos -= TTLCONDTRIG_CONFIGHELP_XSIZE + TTLCONDTRIG_XGAP;
+
+    // Help screen.
+    // This is in front of all other widgets, so it should intercept clicks when visible and enabled.
+
+    helpPanel = new TTLConditionalTriggerEditorConfigHelp(this);
+    helpPanel->setBounds(0, 0, TTLCONDTRIG_CONFIGPANEL_XSIZE, TTLCONDTRIG_CONFIGPANEL_YSIZE);
+    addAndMakeVisible(helpPanel);
+    helpPanel->toFront(false);
+    helpPanel->setVisible(false);
+    helpPanel->setEnabled(false);
 }
 
 
@@ -232,6 +282,11 @@ void TTLConditionalTriggerEditorConfigPanel::buttonClicked(Button* theButton)
     {
         thisEnabled = !thisEnabled;
         refreshGui();
+    }
+    else if (theButton == helpButton)
+    {
+        helpPanel->setVisible(true);
+        helpPanel->setEnabled(true);
     }
 }
 
@@ -263,7 +318,10 @@ void TTLConditionalTriggerEditorConfigPanel::labelTextChanged(Label* theLabel)
         thisConfig.deadTimeSamps = thisSampCount;
     else if (theLabel == outputSustainLabel)
         thisConfig.sustainSamps = thisSampCount;
-// FIXME - labelTextChanged() NYI.
+    else if (theLabel == outputJitterLowLabel)
+        thisConfig.delayMinSamps = thisSampCount;
+    else if (theLabel == outputJitterHighLabel)
+        thisConfig.delayMaxSamps = thisSampCount;
 
     // Sanity check any changed configuration parameters.
     thisConfig.forceSanity();
@@ -292,7 +350,6 @@ void TTLConditionalTriggerEditorConfigPanel::comboBoxChanged(ComboBox* theBox)
         inputBitIdx = selectedId;
     else if (theBox == outputSenseBox)
         thisConfig.outputActiveHigh = (selectedId > 0);
-// FIXME - comboBoxChanged() NYI.
 }
 
 
@@ -410,6 +467,15 @@ int TTLConditionalTriggerEditorConfigPanel::getInputBit()
 }
 
 
+// Callback that the help screen uses when the user closes it.
+
+void TTLConditionalTriggerEditorConfigPanel::clickedHelpScreenDone()
+{
+    helpPanel->setVisible(false);
+    helpPanel->setEnabled(false);
+}
+
+
 // This rebuilds the bit-select combobox to match the selected input bank.
 
 void TTLConditionalTriggerEditorConfigPanel::rebuildBitSelect()
@@ -484,19 +550,19 @@ T_PRINT("refreshGui() called.");
     inputBitBox->setEnabled(editingInput);
 
     // Input timing row.
-
     inputDeglitchLabel->setText( std::to_string((thisConfig.deglitchSamps * 1000) / sampRate), dontSendNotification );
     inputDeadtimeLabel->setText( std::to_string((thisConfig.deadTimeSamps * 1000) / sampRate), dontSendNotification );
 
     // Output config row.
-
     outputSustainLabel->setText( std::to_string((thisConfig.sustainSamps * 1000) / sampRate), dontSendNotification );
     outputSenseBox->setSelectedId( (thisConfig.outputActiveHigh ? 1 : 0) + TTLCONDTRIG_COMBOBOX_OFFSET, dontSendNotification );
 
+    // Output delay row.
+    outputJitterLowLabel->setText( std::to_string((thisConfig.delayMinSamps * 1000) / sampRate), dontSendNotification );
+    outputJitterHighLabel->setText( std::to_string((thisConfig.delayMaxSamps * 1000) / sampRate), dontSendNotification );
+
     // Force a redraw.
     repaint();
-
-    // FIXME - refreshGui() NYI.
 }
 
 

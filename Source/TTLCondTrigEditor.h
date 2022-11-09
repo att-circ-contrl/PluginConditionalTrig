@@ -8,6 +8,7 @@ namespace TTLConditionTrig
 	class TTLConditionalTrigger;
 	class ConditionConfig;
 	class TTLConditionalTriggerEditor;
+	class TTLConditionalTriggerEditorConfigPanel;
 
 
 	// GUI elements for configuring one input.
@@ -146,6 +147,20 @@ namespace TTLConditionTrig
 	};
 
 
+	// Help screen widget for the GUI panel.
+	class TTLConditionalTriggerEditorConfigHelp : public Component, Button::Listener
+	{
+	public:
+		TTLConditionalTriggerEditorConfigHelp(TTLConditionalTriggerEditorConfigPanel *newParent);
+		void paint(Graphics& g);
+		void buttonClicked(Button* theButton);
+
+	protected:
+		TTLConditionalTriggerEditorConfigPanel *parent;
+		ScopedPointer<UtilityButton> doneButton;
+	};
+
+
 	// GUI panel for adjusting one input or output's settings.
 	class TTLConditionalTriggerEditorConfigPanel : public Component, Button::Listener, Label::Listener, ComboBox::Listener
 	{
@@ -170,6 +185,9 @@ namespace TTLConditionTrig
 		int getInputChan();
 		int getInputBit();
 
+		// Callback that the help screen uses when the user closes it.
+		void clickedHelpScreenDone();
+
 	protected:
 		TTLConditionalTriggerEditor *parent;
 		int inIdx, outIdx;
@@ -187,14 +205,16 @@ namespace TTLConditionTrig
 		ScopedPointer<Image> connectOnImage, connectOffImage;
 
 		ScopedPointer<Label> bannerLeftLabel, bannerEditLabel, bannerRightLabel;
-		ScopedPointer<UtilityButton> doneButton;
 		ScopedPointer<Label> enabledLabel, inputFeatureLabel, inputBitLabel, inputChanLabel;
 		ScopedPointer<ImageButton> enableButton;
 		ScopedPointer<ComboBox> inputFeatureBox, inputBitBox, inputChanBox;
 		ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel, inputTimeMidLabel, inputDeadtimeLabel, inputTimeRightLabel;
 		ScopedPointer<Label> outputLeftLabel, outputMidLabel, outputSustainLabel, outputRightLabel;
 		ScopedPointer<ComboBox> outputSenseBox;
-		ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel, OutputJitterMidLabel, OutputJitterHighLabel, OutputJitterRightLabel;
+		ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel, outputJitterMidLabel, outputJitterHighLabel, outputJitterRightLabel;
+		ScopedPointer<UtilityButton> helpButton, doneButton;
+
+		ScopedPointer<TTLConditionalTriggerEditorConfigHelp> helpPanel;
 
 		void rebuildBitSelect();
 		void refreshGui();
