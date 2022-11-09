@@ -173,6 +173,43 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     addAndMakeVisible(inputTimeRightLabel);
     xpos += TTLCONDTRIG_CONFIGINTIMERIGHT_XSIZE;
 
+    // Output config row.
+
+    xpos = TTLCONDTRIG_XGAP;
+    ypos += TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP;
+
+    outputLeftLabel = new Label("", "Output asserted");
+    outputLeftLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGOUTHILOLEFT_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(outputLeftLabel);
+    xpos += TTLCONDTRIG_CONFIGOUTHILOLEFT_XSIZE + TTLCONDTRIG_XGAP;
+
+    outputSenseBox = new ComboBox;
+    outputSenseBox->addItem("high", 1 + TTLCONDTRIG_COMBOBOX_OFFSET);
+    outputSenseBox->addItem("low", 0 + TTLCONDTRIG_COMBOBOX_OFFSET);
+    outputSenseBox->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGOUTHILO_XSIZE, TTLCONDTRIG_YSIZE);
+    outputSenseBox->addListener(this);
+    addAndMakeVisible(outputSenseBox);
+    xpos += TTLCONDTRIG_CONFIGOUTHILO_XSIZE + TTLCONDTRIG_XGAP;
+
+    outputMidLabel = new Label("", "for");
+    outputMidLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGOUTHILOMID_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(outputMidLabel);
+    xpos += TTLCONDTRIG_CONFIGOUTHILOMID_XSIZE + TTLCONDTRIG_XGAP;
+
+    outputSustainLabel = new Label("", "10");
+    outputSustainLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGMS_XSIZE, TTLCONDTRIG_YSIZE);
+    outputSustainLabel->setEditable(true);
+    outputSustainLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
+    outputSustainLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
+    outputSustainLabel->addListener(this);
+    addAndMakeVisible(outputSustainLabel);
+    xpos += TTLCONDTRIG_CONFIGMS_XSIZE;
+
+    outputRightLabel = new Label("", "ms");
+    outputRightLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGOUTHILORIGHT_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(outputRightLabel);
+    xpos += TTLCONDTRIG_CONFIGOUTHILORIGHT_XSIZE;
+
 #if 0
 ScopedPointer<Label> outputLeftLabel, outputMidLabel,
   outputSustainLabel, outputRightLabel;
@@ -224,6 +261,8 @@ void TTLConditionalTriggerEditorConfigPanel::labelTextChanged(Label* theLabel)
         thisConfig.deglitchSamps = thisSampCount;
     else if (theLabel == inputDeadtimeLabel)
         thisConfig.deadTimeSamps = thisSampCount;
+    else if (theLabel == outputSustainLabel)
+        thisConfig.sustainSamps = thisSampCount;
 // FIXME - labelTextChanged() NYI.
 
     // Sanity check any changed configuration parameters.
@@ -250,9 +289,9 @@ void TTLConditionalTriggerEditorConfigPanel::comboBoxChanged(ComboBox* theBox)
         rebuildBitSelect();
     }
     else if (theBox == inputBitBox)
-    {
         inputBitIdx = selectedId;
-    }
+    else if (theBox == outputSenseBox)
+        thisConfig.outputActiveHigh = (selectedId > 0);
 // FIXME - comboBoxChanged() NYI.
 }
 
@@ -448,6 +487,11 @@ T_PRINT("refreshGui() called.");
 
     inputDeglitchLabel->setText( std::to_string((thisConfig.deglitchSamps * 1000) / sampRate), dontSendNotification );
     inputDeadtimeLabel->setText( std::to_string((thisConfig.deadTimeSamps * 1000) / sampRate), dontSendNotification );
+
+    // Output config row.
+
+    outputSustainLabel->setText( std::to_string((thisConfig.sustainSamps * 1000) / sampRate), dontSendNotification );
+    outputSenseBox->setSelectedId( (thisConfig.outputActiveHigh ? 1 : 0) + TTLCONDTRIG_COMBOBOX_OFFSET, dontSendNotification );
 
     // Force a redraw.
     repaint();
