@@ -70,8 +70,8 @@
 
 #define TTLCONDTRIG_PLUGIN_XSIZE (TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE + TTLCONDTRIG_GLOBAL_XOFFSET*2)
 
-// Config panels.
-// NOTE - Maximum total size is about 360, for consistency with previous panels.
+// Config panel.
+// NOTE - Total dimensions work out to 360 x 104, based on previous panels.
 
 #define TTLCONDTRIG_CONFIGBANNER_XSIZE 200
 #define TTLCONDTRIG_CONFIGLABEL_XSIZE 80
@@ -107,6 +107,12 @@
 
 #define TTLCONDTRIG_CONFIGPANEL_XSIZE (TTLCONDTRIG_INPANEL_XSIZE + TTLCONDTRIG_OUTPANEL_XSIZE)
 #define TTLCONDTRIG_CONFIGPANEL_YSIZE (TTLCONDTRIG_YSIZE * 5 + TTLCONDTRIG_YGAP * 6)
+
+// Help screen for the config panel.
+
+#define TTLCONDTRIG_HELP_XGRID 20
+#define TTLCONDTRIG_HELP_YGRID 4
+#define TTLCONDTRIG_HELPDONE_XSIZE 40
 
 
 // Magic constants for GUI colours.

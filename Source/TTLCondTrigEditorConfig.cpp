@@ -268,6 +268,9 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     helpPanel->toFront(false);
     helpPanel->setVisible(false);
     helpPanel->setEnabled(false);
+
+// FIXME - Debugging.
+//T_PRINT("Config panel is " << TTLCONDTRIG_CONFIGPANEL_XSIZE << " by " << TTLCONDTRIG_CONFIGPANEL_YSIZE << ".");
 }
 
 

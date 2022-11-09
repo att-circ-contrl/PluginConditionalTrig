@@ -158,6 +158,15 @@ namespace TTLConditionTrig
 	protected:
 		TTLConditionalTriggerEditorConfigPanel *parent;
 		ScopedPointer<UtilityButton> doneButton;
+
+		void forceAscending(int &num1, int &num2);
+
+		// Graphics primitives.
+		void drawGridHVLine(Graphics& g, int x1, int y1, int x2, int y2, int thickness);
+		void drawGridVArrow(Graphics& g, int x, int y1, int y2);
+		void drawGridHDim(Graphics& g, int x1, int x2, int y);
+		void drawGridArrowhead(Graphics& g, int x, int y, bool isHorizontal, bool pointsNegative);
+		void drawGridText(Graphics& g, int x1, int y1, int x2, int y2, std::string theText);
 	};
 
 

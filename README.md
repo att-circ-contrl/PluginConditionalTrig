@@ -41,6 +41,12 @@ asserted again ("dead time").
 * The output assertion conditions are processed in the same way as input
 assertion conditions.
 
+## Screenshots
+
+![Main Dialog](./Screenshots/20221109-condtrig-main.png)
+![Condition Configuration](./Screenshots/20221109-condtrig-config.png)
+![Config Help Screen](./Screenshots/20221109-condtrig-helpscreen.png)
+
 ## Notes
 
 Copies of this module can be daisy-chained to produce more complicated
