@@ -123,6 +123,15 @@ void ConditionProcessor::handleInput(int64 inputTime, bool inputLevel)
 }
 
 
+// Input processing. This advances the internal time to the specified timestamp.
+void ConditionProcessor::advanceToTime(int64 newTime)
+{
+    // Just add a dummy input event at the current input level.
+    if (newTime > prevInputTime)
+        handleInput(newTime, prevInputLevel);
+}
+
+
 // State accessors.
 
 bool ConditionProcessor::hasPendingOutput()

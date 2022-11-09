@@ -1,18 +1,9 @@
 #include "TTLCondTrig.h"
 #include "TTLCondTrigEditor.h"
 #include "TTLCondTrigConstants.h"
+#include "TTLCondTrigDebug.h"
 
 using namespace TTLConditionTrig;
-
-// Diagnostic tattle macros.
-#define TRIGTATTLE
-#ifdef TRIGTATTLE
-#define T_DEBUG(x) do { x } while(false);
-#else
-#define T_DEBUG(x) {}
-#endif
-// Flushing should already happen with std::endl, but force it anyways.
-#define T_PRINT(x) T_DEBUG(std::cout << "[CondTrig]  " << x << std::endl << std::flush;)
 
 
 //

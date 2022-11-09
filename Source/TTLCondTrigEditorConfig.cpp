@@ -3,17 +3,10 @@
 #include "TTLCondTrigIcons.h"
 #include "TTLCondTrigConstants.h"
 
-using namespace TTLConditionTrig;
+#define TRIGDEBUGPREFIX "[CondTrigConfig]  "
+#include "TTLCondTrigDebug.h"
 
-// Diagnostic tattle macros.
-#define TRIGEDITTATTLE
-#ifdef TRIGEDITTATTLE
-#define T_DEBUG(x) do { x } while(false);
-#else
-#define T_DEBUG(x) {}
-#endif
-// Flushing should already happen with std::endl, but force it anyways.
-#define T_PRINT(x) T_DEBUG(std::cout << "[CondTrigEditor]  " << x << std::endl << std::flush;)
+using namespace TTLConditionTrig;
 
 
 //
@@ -142,11 +135,45 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
     addAndMakeVisible(inputBitBox);
     xpos += TTLCONDTRIG_CONFIGBIT_XSIZE + TTLCONDTRIG_XGAP;
 
+    // Input timing row.
+
+    xpos = TTLCONDTRIG_XGAP;
+    ypos += TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP;
+
+    inputTimeLeftLabel = new Label("", "Input stable for");
+    inputTimeLeftLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGINTIMELEFT_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(inputTimeLeftLabel);
+    xpos += TTLCONDTRIG_CONFIGINTIMELEFT_XSIZE + TTLCONDTRIG_XGAP;
+
+    inputDeglitchLabel = new Label("","0");
+    inputDeglitchLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGMS_XSIZE, TTLCONDTRIG_YSIZE);
+    inputDeglitchLabel->setEditable(true);
+    inputDeglitchLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
+    inputDeglitchLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
+    inputDeglitchLabel->addListener(this);
+    addAndMakeVisible(inputDeglitchLabel);
+    xpos += TTLCONDTRIG_CONFIGMS_XSIZE;
+
+    inputTimeMidLabel = new Label("", "ms, at least");
+    inputTimeMidLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGINTIMEMID_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(inputTimeMidLabel);
+    xpos += TTLCONDTRIG_CONFIGINTIMEMID_XSIZE + TTLCONDTRIG_XGAP;
+
+    inputDeadtimeLabel = new Label("","0");
+    inputDeadtimeLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGMS_XSIZE, TTLCONDTRIG_YSIZE);
+    inputDeadtimeLabel->setEditable(true);
+    inputDeadtimeLabel->setColour(Label::ColourIds::backgroundColourId, TEXTEDIT_NORMAL);
+    inputDeadtimeLabel->setColour(Label::ColourIds::backgroundWhenEditingColourId, TEXTEDIT_ACTIVE);
+    inputDeadtimeLabel->addListener(this);
+    addAndMakeVisible(inputDeadtimeLabel);
+    xpos += TTLCONDTRIG_CONFIGMS_XSIZE;
+
+    inputTimeRightLabel = new Label("", "ms since last trigger");
+    inputTimeRightLabel->setBounds(xpos, ypos, TTLCONDTRIG_CONFIGINTIMERIGHT_XSIZE, TTLCONDTRIG_YSIZE);
+    addAndMakeVisible(inputTimeRightLabel);
+    xpos += TTLCONDTRIG_CONFIGINTIMERIGHT_XSIZE;
+
 #if 0
-ScopedPointer<Label> inputFeatureLabel, inputBitLabel, inputChanLabel;
-ScopedPointer<ComboBox> inputFeatureBox, inputBitBox, inputChanBox;
-ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel,
-  inputTimeMidLabel, inputDeadtimeLabel, InputTimeRightLabel;
 ScopedPointer<Label> outputLeftLabel, outputMidLabel,
   outputSustainLabel, outputRightLabel;
 ScopedPointer<ComboBox> outputSenseBox;
@@ -180,6 +207,12 @@ void TTLConditionalTriggerEditorConfigPanel::labelTextChanged(Label* theLabel)
     std::string thisText = thisTextJuce.toStdString();
     bool isOutput = (inIdx < 0);
 
+    // Parse the label argument as an integer. This should return 0 for invalid input.
+    int64 thisMilliseconds = std::stol(thisText);
+    // Convert this into a duration in samples.
+    int64 thisSampCount = (int64) CoreServices::getGlobalSampleRate();
+    thisSampCount = (thisSampCount * thisMilliseconds) / 1000;
+
     if (theLabel == bannerEditLabel)
     {
         if (isOutput)
@@ -187,7 +220,14 @@ void TTLConditionalTriggerEditorConfigPanel::labelTextChanged(Label* theLabel)
         else
             thisInputLabel = thisText;
     }
+    else if (theLabel == inputDeglitchLabel)
+        thisConfig.deglitchSamps = thisSampCount;
+    else if (theLabel == inputDeadtimeLabel)
+        thisConfig.deadTimeSamps = thisSampCount;
 // FIXME - labelTextChanged() NYI.
+
+    // Sanity check any changed configuration parameters.
+    thisConfig.forceSanity();
 
     refreshGui();
 }
@@ -367,6 +407,8 @@ T_PRINT("refreshGui() called.");
     std::string scratchstr;
     bool isOutput = (inIdx < 0);
 
+    int64 sampRate = (int64) CoreServices::getGlobalSampleRate();
+
     // Banner row.
 
     if (isOutput)
@@ -402,6 +444,10 @@ T_PRINT("refreshGui() called.");
     inputBitBox->setVisible(editingInput);
     inputBitBox->setEnabled(editingInput);
 
+    // Input timing row.
+
+    inputDeglitchLabel->setText( std::to_string((thisConfig.deglitchSamps * 1000) / sampRate), dontSendNotification );
+    inputDeadtimeLabel->setText( std::to_string((thisConfig.deadTimeSamps * 1000) / sampRate), dontSendNotification );
 
     // Force a redraw.
     repaint();

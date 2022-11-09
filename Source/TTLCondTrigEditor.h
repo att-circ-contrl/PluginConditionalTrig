@@ -191,7 +191,7 @@ namespace TTLConditionTrig
 		ScopedPointer<Label> enabledLabel, inputFeatureLabel, inputBitLabel, inputChanLabel;
 		ScopedPointer<ImageButton> enableButton;
 		ScopedPointer<ComboBox> inputFeatureBox, inputBitBox, inputChanBox;
-		ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel, inputTimeMidLabel, inputDeadtimeLabel, InputTimeRightLabel;
+		ScopedPointer<Label> inputTimeLeftLabel, inputDeglitchLabel, inputTimeMidLabel, inputDeadtimeLabel, inputTimeRightLabel;
 		ScopedPointer<Label> outputLeftLabel, outputMidLabel, outputSustainLabel, outputRightLabel;
 		ScopedPointer<ComboBox> outputSenseBox;
 		ScopedPointer<Label> outputJitterLeftLabel, outputJitterLowLabel, OutputJitterMidLabel, OutputJitterHighLabel, OutputJitterRightLabel;

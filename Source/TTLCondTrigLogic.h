@@ -57,6 +57,7 @@ namespace TTLConditionTrig
 
 		void resetInput(int64 resetTime, bool newInput);
 		void handleInput(int64 inputTime, bool inputLevel);
+		void advanceToTime(int64 newTime);
 
 		bool hasPendingOutput();
 		int64 getNextOutputTime();

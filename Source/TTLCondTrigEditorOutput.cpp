@@ -3,17 +3,10 @@
 #include "TTLCondTrigIcons.h"
 #include "TTLCondTrigConstants.h"
 
-using namespace TTLConditionTrig;
+#define TRIGDEBUGPREFIX "[CondTrigOutput]  "
+#include "TTLCondTrigDebug.h"
 
-// Diagnostic tattle macros.
-#define TRIGEDITTATTLE
-#ifdef TRIGEDITTATTLE
-#define T_DEBUG(x) do { x } while(false);
-#else
-#define T_DEBUG(x) {}
-#endif
-// Flushing should already happen with std::endl, but force it anyways.
-#define T_PRINT(x) T_DEBUG(std::cout << "[CondTrigEditor]  " << x << std::endl << std::flush;)
+using namespace TTLConditionTrig;
 
 
 //
