@@ -48,7 +48,13 @@ T_PRINT("Constructor called.");
 
             inMatrixPtr++;
         }
+
     }
+
+    // Initialize the mergers, now that configuration is initialized.
+    // This should already be at a reasonable state, but do it anyways.
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        rebuildMergeConfig(outIdx);
 }
 
 
@@ -113,12 +119,10 @@ T_PRINT("createEventChannels() called.");
 // Processing loop.
 void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
 {
-    // Process input events.
-    checkForEvents();
-
 // FIXME: Generate a test pattern.
-// This generates phantom input events.
-#if 1
+// This generates phantom input events, instead of using real events.
+#if TRIGDEBUG_WANTINPUTPATTERN
+{
     int64 thisTimeSamples = CoreServices::getGlobalTimestamp();
     int64 sampRate = (int64) CoreServices::getGlobalSampleRate();
 
@@ -133,6 +137,10 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     int inMatrixIdx = inIdx + outIdx * TTLCONDTRIG_INPUTS;
 
     inputConditions[inMatrixIdx].handleInput(thisTimeSamples, wantRaise);
+}
+#else
+    // Process input events.
+    checkForEvents();
 #endif
 
     // Now that all of these have been processed, generate output events in temporal order.
@@ -200,9 +208,10 @@ T_PRINT("###  Indices out of range! Bailing out.");
 
 
     // Update the requested configuration.
-    // NOTE - We could special-case "enable" and call the lightweight accessor, but since that's triggered by a button click, it really isn't a big deal to do it with a full config read/write.
+    // This is called in response to a button-click, so it's okay to perform expensive updates here.
 
     ConditionConfig thisConfig;
+    bool needMergeUpdate = false;
 
     if (isInput)
         thisConfig = inputConditions[matrixIdx].getConfig();
@@ -214,7 +223,10 @@ T_PRINT("###  Indices out of range! Bailing out.");
     // Configuration handled by the plugin.
     case TTLCONDTRIG_PARAM_IS_ENABLED:
         if (isInput)
+        {
             isInputEnabled[matrixIdx] = booleanValue;
+            needMergeUpdate = true;
+        }
         else
             isOutputEnabled[outIdx] = booleanValue;
         break;
@@ -228,7 +240,10 @@ T_PRINT("###  Indices out of range! Bailing out.");
         break;
     case TTLCONDTRIG_PARAM_WANT_ALL:
         if (isOutput)
+        {
             needAllInputs[outIdx] = booleanValue;
+            needMergeUpdate = true;
+        }
         break;
     // Configuration handled by the TTL logic widgets.
     case TTLCONDTRIG_PARAM_DELAY_MIN:
@@ -256,6 +271,11 @@ T_PRINT("###  Indices out of range! Bailing out.");
         inputConditions[matrixIdx].setConfig(thisConfig);
     else if (isOutput)
         outputConditions[matrixIdx].setConfig(thisConfig);
+
+
+    if (needMergeUpdate)
+        // outIdx indicates which merger we're updating.
+        rebuildMergeConfig(outIdx);
 }
 
 
@@ -352,6 +372,10 @@ T_PRINT("###  Asked to load configuration for out-of-range input " << outIdx << 
             }
         }
     }
+
+    // Now that inputs and outputs are configured, rebuild the merge state.
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        rebuildMergeConfig(outIdx);
 }
 
 
@@ -491,6 +515,23 @@ ConditionConfig TTLConditionalTrigger::loadLogicFromXml(XmlElement* theTag)
     theConfig.forceSanity();
 
     return theConfig;
+}
+
+
+// This rebuilds an output merger's configuration to reflect input enable and output any/all state.
+void TTLConditionalTrigger::rebuildMergeConfig(int outIdx)
+{
+T_PRINT("rebuildMergeConfig() called for output " << outIdx << ".");
+
+    outputMergers[outIdx].setMergeMode( needAllInputs[outIdx] ? ConditionMerger::mergeAnd : ConditionMerger::mergeOr );
+
+    outputMergers[outIdx].clearInputList();
+    int inMatrixPtr = outIdx * TTLCONDTRIG_INPUTS;
+    for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
+        if (isInputEnabled[inMatrixPtr + inIdx])
+            outputMergers[outIdx].addInput( &(inputConditions[inMatrixPtr + inIdx]) );
+
+    outputMergers[outIdx].resetState();
 }
 
 

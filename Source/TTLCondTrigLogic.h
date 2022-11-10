@@ -41,8 +41,36 @@ namespace TTLConditionTrig
 	};
 
 
+	// Base class for output buffer handling.
+	class ConditionOutput
+	{
+	public:
+		// Constructor.
+		ConditionOutput();
+		// Default destructor is fine.
+
+
+		// Accessors.
+
+		virtual void resetState();
+
+		bool hasPendingOutput();
+		int64 getNextOutputTime();
+		bool getNextOutputLevel();
+		void acknowledgeOutput();
+		bool getLastAcknowledgedOutput();
+
+	protected:
+		bool prevAcknowledgedOutput;
+		CircBuf<int64,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputTimes;
+		CircBuf<bool,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputLevels;
+
+		void enqueueOutput(int64 newTime, bool newLevel);
+	};
+
+
 	// Condition processing for one TTL signal.
-	class ConditionProcessor
+	class ConditionProcessor : public ConditionOutput
 	{
 	public:
 		// Constructor.
@@ -53,28 +81,50 @@ namespace TTLConditionTrig
 
 		void setConfig(ConditionConfig &newConfig);
 		ConditionConfig getConfig();
-		void resetState();
+
+		void resetState() override;
 
 		void resetInput(int64 resetTime, bool newInput);
 		void handleInput(int64 inputTime, bool inputLevel);
 		void advanceToTime(int64 newTime);
 
-		bool hasPendingOutput();
-		int64 getNextOutputTime();
-		bool getNextOutputLevel();
-                void acknowledgeOutput();
-
-		// These are mostly to simplify display polling.
+		// This is to simplify display polling.
 		bool getLastInput();
-		bool getLastAcknowledgedOutput();
 
 	protected:
 		ConditionConfig config;
 		int64 prevInputTime;
 		bool prevInputLevel;
-		bool prevAcknowledgedOutput;
-		CircBuf<int64,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputTimes;
-		CircBuf<bool,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputLevels;
+	};
+
+
+	// Merging of multiple condition outputs.
+	class ConditionMerger : public ConditionOutput
+	{
+	public:
+		enum MergerType
+		{
+			mergeAnd = 0,
+			mergeOr = 1
+		};
+
+		// Constructor.
+		ConditionMerger();
+		// Default destructor is fine.
+
+		// Accessors.
+
+		void clearInputList();
+		void addInput(ConditionOutput* newInput);
+
+		void setMergeMode(MergerType newMode);
+
+		void resetState() override;
+		void processPendingInput();
+
+	protected:
+		Array<ConditionOutput*> inputList;
+		MergerType mergeMode;
 	};
 }
 

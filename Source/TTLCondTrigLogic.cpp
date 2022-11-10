@@ -61,6 +61,78 @@ void ConditionConfig::forceSanity()
 }
 
 
+
+//
+// Base class for output buffer handling.
+
+
+// Constructor
+ConditionOutput::ConditionOutput()
+{
+    resetState();
+}
+
+
+// State reset. This clears pending output and sets past output to false.
+void ConditionOutput::resetState()
+{
+    pendingOutputTimes.clear();
+    pendingOutputLevels.clear();
+    prevAcknowledgedOutput = false;
+}
+
+
+// State accessors.
+
+bool ConditionOutput::hasPendingOutput()
+{
+    return (pendingOutputTimes.count() > 0);
+}
+
+
+int64 ConditionOutput::getNextOutputTime()
+{
+    // NOTE - This will return a safe value (0) if we don't have output.
+    return pendingOutputTimes.snoop();
+}
+
+
+bool ConditionOutput::getNextOutputLevel()
+{
+    // NOTE - This will return a safe value (false) if we don't have output.
+    return pendingOutputLevels.snoop();
+}
+
+
+// This removes the next queued output event, after we've read it.
+void ConditionOutput::acknowledgeOutput()
+{
+    // Save whatever the last output was.
+    // This will return a safe value (false) if we don't have pending output.
+    prevAcknowledgedOutput = pendingOutputLevels.snoop();
+
+    // Discard return values.
+    pendingOutputTimes.dequeue();
+    pendingOutputLevels.dequeue();
+}
+
+
+bool ConditionOutput::getLastAcknowledgedOutput()
+{
+    return prevAcknowledgedOutput;
+}
+
+
+// Protected accessors.
+
+void ConditionOutput::enqueueOutput(int64 newTime, bool newLevel)
+{
+    pendingOutputTimes.enqueue(newTime);
+    pendingOutputLevels.enqueue(newLevel);
+}
+
+
+
 //
 // Condition processing for one TTL signal.
 
@@ -97,8 +169,9 @@ ConditionConfig ConditionProcessor::getConfig()
 // State reset. This clears active events after a configuration change.
 void ConditionProcessor::resetState()
 {
-    pendingOutputTimes.clear();
-    pendingOutputLevels.clear();
+    ConditionOutput::resetState();
+
+    // Adjust idle output to reflect configuration.
     prevAcknowledgedOutput = !(config.outputActiveHigh);
 }
 
@@ -132,52 +205,62 @@ void ConditionProcessor::advanceToTime(int64 newTime)
 }
 
 
-// State accessors.
-
-bool ConditionProcessor::hasPendingOutput()
-{
-    return (pendingOutputTimes.count() > 0);
-}
-
-
-int64 ConditionProcessor::getNextOutputTime()
-{
-    // NOTE - This will return a safe value (0) if we don't have output.
-    return pendingOutputTimes.snoop();
-}
-
-
-bool ConditionProcessor::getNextOutputLevel()
-{
-    // NOTE - This will return a safe value (false) if we don't have output.
-    return pendingOutputLevels.snoop();
-}
-
-
-// This removes the next queued output event, after we've read it.
-void ConditionProcessor::acknowledgeOutput()
-{
-    // Save whatever the last output was.
-    // This will return a safe value (false) if we don't have pending output.
-    prevAcknowledgedOutput = pendingOutputLevels.snoop();
-
-    // Discard return values.
-    pendingOutputTimes.dequeue();
-    pendingOutputLevels.dequeue();
-}
-
-
-// Display polling accessors.
-
+// Display polling accessor.
 bool ConditionProcessor::getLastInput()
 {
     return prevInputLevel;
 }
 
 
-bool ConditionProcessor::getLastAcknowledgedOutput()
+
+//
+// Merging of multiple condition processor outputs.
+
+
+// Constructor.
+ConditionMerger::ConditionMerger()
 {
-    return prevAcknowledgedOutput;
+    mergeMode = mergeAnd;
+    clearInputList();
+
+    // We have no inputs, so there's no need to call resetState() here.
+    // The parent constructor already reset output state, and virtual tables aren't initialized yet.
+}
+
+
+// Accessors.
+
+void ConditionMerger::clearInputList()
+{
+    inputList.clear();
+}
+
+
+void ConditionMerger::addInput(ConditionOutput* newInput)
+{
+    inputList.add(newInput);
+}
+
+
+void ConditionMerger::setMergeMode(ConditionMerger::MergerType newMode)
+{
+    mergeMode = newMode;
+}
+
+
+void ConditionMerger::resetState()
+{
+    ConditionOutput::resetState();
+
+    for (int inIdx = 0; inIdx < inputList.size(); inIdx++)
+        if (NULL != inputList[inIdx])
+            (inputList[inIdx])->resetState();
+}
+
+
+void ConditionMerger::processPendingInput()
+{
+// FIXME - processPendingInput() NYI.
 }
 
 

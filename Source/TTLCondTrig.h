@@ -64,6 +64,7 @@ namespace TTLConditionTrig
 		// There shouldn't be anything dynamically allocated in here, and thread safety should already by guaranteed by setParameter().
 		// So, C++ arrays rather than Array/OwnedArray should be fine.
 		ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		ConditionMerger outputMergers[TTLCONDTRIG_OUTPUTS];
 		ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
 
 		// Additional input configuration.
@@ -83,6 +84,9 @@ namespace TTLConditionTrig
 		// Helper functions for saving/loading condition configurations.
 		void saveLogicToXml(XmlElement* theTag, ConditionConfig theConfig);
 		ConditionConfig loadLogicFromXml(XmlElement* theTag);
+
+		// Helper function for rebuilding ConditionMerger configurations.
+		void rebuildMergeConfig(int outIdx);
 
 	private:
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TTLConditionalTrigger);

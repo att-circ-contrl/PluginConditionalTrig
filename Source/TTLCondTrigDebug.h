@@ -7,6 +7,9 @@
 // Enable/disable switch.
 #define TRIGWANTDEBUG 1
 
+// Input override switch. This generates a test pattern on the inputs.
+#define TRIGDEBUG_WANTINPUTPATTERN 1
+
 
 // Report prefix string. This defaults to "[CondTrig]  ".
 #ifndef TRIGDEBUGPREFIX
