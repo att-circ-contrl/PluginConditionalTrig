@@ -6,9 +6,10 @@
 #include "TTLCondTrigEditor.h"
 #include "TTLCondTrigConstants.h"
 #include "TTLCondTrigDebug.h"
-#include "TTLCondTrigIcons.h"
+#include "RetroIcons.h"
 
 using namespace TTLTools;
+using namespace RetroIcons;
 using namespace TTLConditionTrig;
 
 
