@@ -3,8 +3,8 @@
 
 #include <ProcessorHeaders.h>
 
-#include "TTLCondTrigCircBuf.h"
-#include "TTLCondTrigLogic.h"
+#include "TTLToolsCircBuf.h"
+#include "TTLToolsLogic.h"
 
 
 // Magic constants for data geometry.
@@ -63,9 +63,9 @@ namespace TTLConditionTrig
 	protected:
 		// There shouldn't be anything dynamically allocated in here, and thread safety should already by guaranteed by setParameter().
 		// So, C++ arrays rather than Array/OwnedArray should be fine.
-		ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
-		ConditionMerger outputMergers[TTLCONDTRIG_OUTPUTS];
-		ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
+		TTLTools::ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		TTLTools::LogicMerger outputMergers[TTLCONDTRIG_OUTPUTS];
+		TTLTools::ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
 
 		// Additional input configuration.
 		bool isInputEnabled[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
@@ -82,10 +82,10 @@ namespace TTLConditionTrig
 		EventChannel *outputEventChan;
 
 		// Helper functions for saving/loading condition configurations.
-		void saveLogicToXml(XmlElement* theTag, ConditionConfig theConfig);
-		ConditionConfig loadLogicFromXml(XmlElement* theTag);
+		void saveLogicToXml(XmlElement* theTag, TTLTools::ConditionConfig theConfig);
+		TTLTools::ConditionConfig loadLogicFromXml(XmlElement* theTag);
 
-		// Helper function for rebuilding ConditionMerger configurations.
+		// Helper function for rebuilding outputMerger configurations.
 		void rebuildMergeConfig(int outIdx);
 
 	private:

@@ -1,5 +1,5 @@
-#ifndef TTLCONDTRIG_CIRCBUF_H_DEFINED
-#define TTLCONDTRIG_CIRCBUF_H_DEFINED
+#ifndef TTLTOOLS_CIRCBUF_H_DEFINED
+#define TTLTOOLS_CIRCBUF_H_DEFINED
 
 
 //
@@ -8,7 +8,7 @@
 // NOTE - If you store pointers, do your own de-allocation! This doesn't do it for you.
 // NOTE - This is not MT-safe! Use one of JUCE's buffer types if you need locking.
 
-namespace TTLConditionTrig
+namespace TTLTools
 {
 	template <class datatype_t,size_t bufsize> class CircBuf
 	{
@@ -38,14 +38,14 @@ namespace TTLConditionTrig
 
 
 template <class datatype_t,size_t bufsize>
-TTLConditionTrig::CircBuf<datatype_t,bufsize>::CircBuf()
+TTLTools::CircBuf<datatype_t,bufsize>::CircBuf()
 {
 	clear();
 }
 
 
 template <class datatype_t,size_t bufsize>
-void TTLConditionTrig::CircBuf<datatype_t,bufsize>::clear()
+void TTLTools::CircBuf<datatype_t,bufsize>::clear()
 {
 	readPtr = 0;
 	writePtr = 0;
@@ -54,7 +54,7 @@ void TTLConditionTrig::CircBuf<datatype_t,bufsize>::clear()
 
 
 template <class datatype_t,size_t bufsize>
-void TTLConditionTrig::CircBuf<datatype_t,bufsize>::enqueue(datatype_t newVal)
+void TTLTools::CircBuf<datatype_t,bufsize>::enqueue(datatype_t newVal)
 {
 	// Silently discard this if we're out of space.
 	if (dataCount < bufsize)
@@ -68,7 +68,7 @@ void TTLConditionTrig::CircBuf<datatype_t,bufsize>::enqueue(datatype_t newVal)
 
 
 template <class datatype_t,size_t bufsize>
-datatype_t TTLConditionTrig::CircBuf<datatype_t,bufsize>::dequeue()
+datatype_t TTLTools::CircBuf<datatype_t,bufsize>::dequeue()
 {
 	// Do a non-destructive read.
 	datatype_t returnVal = snoop();
@@ -86,7 +86,7 @@ datatype_t TTLConditionTrig::CircBuf<datatype_t,bufsize>::dequeue()
 
 
 template <class datatype_t,size_t bufsize>
-datatype_t TTLConditionTrig::CircBuf<datatype_t,bufsize>::snoop()
+datatype_t TTLTools::CircBuf<datatype_t,bufsize>::snoop()
 {
 	// Pick a safe default value.
 	datatype_t returnVal = (datatype_t) 0;
@@ -101,7 +101,7 @@ datatype_t TTLConditionTrig::CircBuf<datatype_t,bufsize>::snoop()
 
 
 template <class datatype_t,size_t bufsize>
-size_t TTLConditionTrig::CircBuf<datatype_t,bufsize>::count()
+size_t TTLTools::CircBuf<datatype_t,bufsize>::count()
 {
 	return dataCount;
 }

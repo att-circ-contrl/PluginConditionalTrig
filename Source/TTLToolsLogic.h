@@ -1,13 +1,13 @@
-#ifndef TTLCONDTRIGLOGIC_H_DEFINED
-#define TTLCONDTRIGLOGIC_H_DEFINED
+#ifndef TTLTOOLS_LOGIC_H_DEFINED
+#define TTLTOOLS_LOGIC_H_DEFINED
 
 // Magic constant: maximum number of pending TTL events in a single bit-line.
 // Making this a power of 2 _should_ be faster but isn't vital.
-#define TTLCONDTRIG_EVENT_BUF_SIZE 16384
+#define TTLTOOLSLOGIC_EVENT_BUF_SIZE 16384
 
 
 // Class declarations.
-namespace TTLConditionTrig
+namespace TTLTools
 {
 	// Configuration for processing conditions on one signal.
 	// Nothing in here is dynamically allocated, so copy-by-value is fine.
@@ -41,12 +41,12 @@ namespace TTLConditionTrig
 	};
 
 
-	// Base class for output buffer handling.
-	class ConditionOutput
+	// Parent class for buffered TTL handling.
+	class LogicFIFO
 	{
 	public:
 		// Constructor.
-		ConditionOutput();
+		LogicFIFO();
 		// Default destructor is fine.
 
 
@@ -54,23 +54,35 @@ namespace TTLConditionTrig
 
 		virtual void resetState();
 
+		virtual void resetInput(int64 resetTime, bool newInput);
+		virtual void handleInput(int64 inputTime, bool inputLevel);
+		virtual void advanceToTime(int64 newTime);
+
 		bool hasPendingOutput();
 		int64 getNextOutputTime();
 		bool getNextOutputLevel();
 		void acknowledgeOutput();
+
+		bool getLastInput();
 		bool getLastAcknowledgedOutput();
 
+		// Copy-by-value accessor. This is used for splitting output.
+		LogicFIFO* getCopyByValue();
+
 	protected:
+		CircBuf<int64,TTLTOOLSLOGIC_EVENT_BUF_SIZE> pendingOutputTimes;
+		CircBuf<bool,TTLTOOLSLOGIC_EVENT_BUF_SIZE> pendingOutputLevels;
+
+		int64 prevInputTime;
+		bool prevInputLevel;
 		bool prevAcknowledgedOutput;
-		CircBuf<int64,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputTimes;
-		CircBuf<bool,TTLCONDTRIG_EVENT_BUF_SIZE> pendingOutputLevels;
 
 		void enqueueOutput(int64 newTime, bool newLevel);
 	};
 
 
 	// Condition processing for one TTL signal.
-	class ConditionProcessor : public ConditionOutput
+	class ConditionProcessor : public LogicFIFO
 	{
 	public:
 		// Constructor.
@@ -83,23 +95,17 @@ namespace TTLConditionTrig
 		ConditionConfig getConfig();
 
 		void resetState() override;
-
-		void resetInput(int64 resetTime, bool newInput);
-		void handleInput(int64 inputTime, bool inputLevel);
-		void advanceToTime(int64 newTime);
-
-		// This is to simplify display polling.
-		bool getLastInput();
+		void handleInput(int64 inputTime, bool inputLevel) override;
+		void advanceToTime(int64 newTime) override;
 
 	protected:
 		ConditionConfig config;
-		int64 prevInputTime;
-		bool prevInputLevel;
 	};
 
 
 	// Merging of multiple condition outputs.
-	class ConditionMerger : public ConditionOutput
+	// This works by pulling, to avoid needing input buffers.
+	class LogicMerger : public LogicFIFO
 	{
 	public:
 		enum MergerType
@@ -109,13 +115,14 @@ namespace TTLConditionTrig
 		};
 
 		// Constructor.
-		ConditionMerger();
+		LogicMerger();
 		// Default destructor is fine.
 
 		// Accessors.
+		// NOTE - Do not call the LogicFIFO input accessors. Call processPendingInput() instead.
 
 		void clearInputList();
-		void addInput(ConditionOutput* newInput);
+		void addInput(LogicFIFO* newInput);
 
 		void setMergeMode(MergerType newMode);
 
@@ -123,7 +130,7 @@ namespace TTLConditionTrig
 		void processPendingInput();
 
 	protected:
-		Array<ConditionOutput*> inputList;
+		Array<LogicFIFO*> inputList;
 		MergerType mergeMode;
 	};
 }

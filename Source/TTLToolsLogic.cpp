@@ -1,9 +1,9 @@
 #include <ProcessorHeaders.h>
 
-#include "TTLCondTrigCircBuf.h"
-#include "TTLCondTrigLogic.h"
+#include "TTLToolsCircBuf.h"
+#include "TTLToolsLogic.h"
 
-using namespace TTLConditionTrig;
+using namespace TTLTools;
 
 
 //
@@ -67,14 +67,16 @@ void ConditionConfig::forceSanity()
 
 
 // Constructor
-ConditionOutput::ConditionOutput()
+LogicFIFO::LogicFIFO()
 {
     resetState();
 }
 
 
+// State manipulation.
+
 // State reset. This clears pending output and sets past output to false.
-void ConditionOutput::resetState()
+void LogicFIFO::resetState()
 {
     pendingOutputTimes.clear();
     pendingOutputLevels.clear();
@@ -82,22 +84,49 @@ void ConditionOutput::resetState()
 }
 
 
+// This overwrites our record of the previous input levels without causing an event update.
+// This is used for initialization.
+void LogicFIFO::resetInput(int64 resetTime, bool newInput)
+{
+    prevInputTime = resetTime;
+    prevInputLevel = newInput;
+}
+
+
+// Input processing. For the FIFO, input events are just copied to the output.
+void LogicFIFO::handleInput(int64 inputTime, bool inputLevel)
+{
+    // Update the "last input seen" record.
+    resetInput(inputTime, inputLevel);
+
+    // Copy this event to the output buffer.
+    enqueueOutput(inputTime, inputLevel);
+}
+
+
+// Input processing. This advances the internal time to the specified timestamp.
+void LogicFIFO::advanceToTime(int64 newTime)
+{
+    // Nothing to do for the base class.
+}
+
+
 // State accessors.
 
-bool ConditionOutput::hasPendingOutput()
+bool LogicFIFO::hasPendingOutput()
 {
     return (pendingOutputTimes.count() > 0);
 }
 
 
-int64 ConditionOutput::getNextOutputTime()
+int64 LogicFIFO::getNextOutputTime()
 {
     // NOTE - This will return a safe value (0) if we don't have output.
     return pendingOutputTimes.snoop();
 }
 
 
-bool ConditionOutput::getNextOutputLevel()
+bool LogicFIFO::getNextOutputLevel()
 {
     // NOTE - This will return a safe value (false) if we don't have output.
     return pendingOutputLevels.snoop();
@@ -105,7 +134,7 @@ bool ConditionOutput::getNextOutputLevel()
 
 
 // This removes the next queued output event, after we've read it.
-void ConditionOutput::acknowledgeOutput()
+void LogicFIFO::acknowledgeOutput()
 {
     // Save whatever the last output was.
     // This will return a safe value (false) if we don't have pending output.
@@ -117,15 +146,41 @@ void ConditionOutput::acknowledgeOutput()
 }
 
 
-bool ConditionOutput::getLastAcknowledgedOutput()
+bool LogicFIFO::getLastInput()
+{
+    return prevInputLevel;
+}
+
+
+bool LogicFIFO::getLastAcknowledgedOutput()
 {
     return prevAcknowledgedOutput;
 }
 
 
+// Copy-by-value accessor. This is used for splitting output.
+// The idea is that we don't need to know the type of a derived class to get a basic FIFO with a copy of that object's output.
+
+LogicFIFO* LogicFIFO::getCopyByValue()
+{
+    LogicFIFO* result = new LogicFIFO;
+
+    // All of our internal data fields, including buffers, can be copied by value.
+
+    result->pendingOutputTimes = pendingOutputTimes;
+    result->pendingOutputLevels = pendingOutputLevels;
+
+    result->prevInputTime = prevInputTime;
+    result->prevInputLevel = prevInputLevel;
+    result->prevAcknowledgedOutput = prevAcknowledgedOutput;
+
+    return result;
+}
+
+
 // Protected accessors.
 
-void ConditionOutput::enqueueOutput(int64 newTime, bool newLevel)
+void LogicFIFO::enqueueOutput(int64 newTime, bool newLevel)
 {
     pendingOutputTimes.enqueue(newTime);
     pendingOutputLevels.enqueue(newLevel);
@@ -169,19 +224,10 @@ ConditionConfig ConditionProcessor::getConfig()
 // State reset. This clears active events after a configuration change.
 void ConditionProcessor::resetState()
 {
-    ConditionOutput::resetState();
+    LogicFIFO::resetState();
 
     // Adjust idle output to reflect configuration.
     prevAcknowledgedOutput = !(config.outputActiveHigh);
-}
-
-
-// This overwrites our record of the previous input levels without causing an event update.
-// This is used for initialization at the start of acquisition.
-void ConditionProcessor::resetInput(int64 resetTime, bool newInput)
-{
-    prevInputTime = resetTime;
-    prevInputLevel = newInput;
 }
 
 
@@ -191,24 +237,16 @@ void ConditionProcessor::handleInput(int64 inputTime, bool inputLevel)
 // FIXME - handleInput NYI.
 
     // Update the "last input seen" record.
-    prevInputTime = inputTime;
-    prevInputLevel = inputLevel;
+    resetInput(inputTime, inputLevel);
 }
 
 
 // Input processing. This advances the internal time to the specified timestamp.
 void ConditionProcessor::advanceToTime(int64 newTime)
 {
-    // Just add a dummy input event at the current input level.
+    // Add a dummy input event so that we generate output events up to the desired time.
     if (newTime > prevInputTime)
         handleInput(newTime, prevInputLevel);
-}
-
-
-// Display polling accessor.
-bool ConditionProcessor::getLastInput()
-{
-    return prevInputLevel;
 }
 
 
@@ -216,41 +254,43 @@ bool ConditionProcessor::getLastInput()
 //
 // Merging of multiple condition processor outputs.
 
+// This works by pulling, to avoid needing input buffers.
+
 
 // Constructor.
-ConditionMerger::ConditionMerger()
+LogicMerger::LogicMerger()
 {
     mergeMode = mergeAnd;
     clearInputList();
 
-    // We have no inputs, so there's no need to call resetState() here.
-    // The parent constructor already reset output state, and virtual tables aren't initialized yet.
+    // We have no inputs yet, so there's no need to call resetState() here.
+    // The parent constructor already reset output state, and virtual tables aren't yet initialized.
 }
 
 
 // Accessors.
 
-void ConditionMerger::clearInputList()
+void LogicMerger::clearInputList()
 {
     inputList.clear();
 }
 
 
-void ConditionMerger::addInput(ConditionOutput* newInput)
+void LogicMerger::addInput(LogicFIFO* newInput)
 {
     inputList.add(newInput);
 }
 
 
-void ConditionMerger::setMergeMode(ConditionMerger::MergerType newMode)
+void LogicMerger::setMergeMode(LogicMerger::MergerType newMode)
 {
     mergeMode = newMode;
 }
 
 
-void ConditionMerger::resetState()
+void LogicMerger::resetState()
 {
-    ConditionOutput::resetState();
+    LogicFIFO::resetState();
 
     for (int inIdx = 0; inIdx < inputList.size(); inIdx++)
         if (NULL != inputList[inIdx])
@@ -258,7 +298,7 @@ void ConditionMerger::resetState()
 }
 
 
-void ConditionMerger::processPendingInput()
+void LogicMerger::processPendingInput()
 {
 // FIXME - processPendingInput() NYI.
 }

@@ -3,10 +3,12 @@
 
 #include <EditorHeaders.h>
 
+#include "TTLToolsCircBuf.h"
+#include "TTLToolsLogic.h"
+
 namespace TTLConditionTrig
 {
 	class TTLConditionalTrigger;
-	class ConditionConfig;
 	class TTLConditionalTriggerEditor;
 	class TTLConditionalTriggerEditorConfigPanel;
 
@@ -182,14 +184,14 @@ namespace TTLConditionTrig
 
 		void rebuildChannelSelect(StringArray &newInBankNames, Array<int> &newInBankIndices, Array<int> &newInBankBits);
 		// Use an input index of "-1" when editing outputs.
-		void setEditingState(int newInIdx, int newOutIdx, ConditionConfig &newConfig, bool newEnabled, int newChanIdx, int newBitIdx, std::string &newInputLabel, std::string &newOutputLabel);
+		void setEditingState(int newInIdx, int newOutIdx, TTLTools::ConditionConfig &newConfig, bool newEnabled, int newChanIdx, int newBitIdx, std::string &newInputLabel, std::string &newOutputLabel);
 
 		// These are to let the parent pull state when editing has finished.
 		std::string getInputLabel();
 		std::string getOutputLabel();
 		int getInIdxEdited();
 		int getOutIdxEdited();
-		ConditionConfig getConfig();
+		TTLTools::ConditionConfig getConfig();
 		bool getEnabled();
 		int getInputChan();
 		int getInputBit();
@@ -205,7 +207,7 @@ namespace TTLConditionTrig
 		Array<int> inBankIndices;
 		Array<int> inBankBits;
 
-		ConditionConfig thisConfig;
+		TTLTools::ConditionConfig thisConfig;
 		bool thisEnabled;
 		int inputChanIdx;
 		int inputBitIdx;
@@ -254,8 +256,8 @@ namespace TTLConditionTrig
 		// NOTE - The plugin has to push data to us, rather than us pulling it.
 		// Most of the config state only gets updated when not running. Output enable is the exception.
 		// NOTE - Pushing arguments by value rather than by reference to avoid multithreading issues.
-		void pushInputConfigToEditor(int inMatrixIdx, ConditionConfig newConfig, bool wantEnabled, int newChanIdx, int newBitIdx);
-		void pushOutputConfigToEditor(int outIdx, ConditionConfig newConfig, bool wantEnabled, bool newNeedAllInputs);
+		void pushInputConfigToEditor(int inMatrixIdx, TTLTools::ConditionConfig newConfig, bool wantEnabled, int newChanIdx, int newBitIdx);
+		void pushOutputConfigToEditor(int outIdx, TTLTools::ConditionConfig newConfig, bool wantEnabled, bool newNeedAllInputs);
 		// NOTE - Passing arrays by value involves shenanigans, but the caller's arrays should persist until this call returns, so we'll be okay.
 		void pushRunningStateToEditor(bool (&rawInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&cookedInputs)[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS], bool (&outputState)[TTLCONDTRIG_OUTPUTS], bool (&outputsEnabled)[TTLCONDTRIG_OUTPUTS]);
 		// NOTE - The plugin pulls label strings from us, since we generate them and they can't be pushed via setParameter().
@@ -279,8 +281,8 @@ namespace TTLConditionTrig
 		Array<int> inBankBits;
 
 		// We have our own local copies of configuration state.
-		ConditionConfig inputConfig[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
-		ConditionConfig outputConfig[TTLCONDTRIG_OUTPUTS];
+		TTLTools::ConditionConfig inputConfig[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
+		TTLTools::ConditionConfig outputConfig[TTLCONDTRIG_OUTPUTS];
 		bool isInputEnabled[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		int inputChanIdx[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		int inputBitIdx[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];

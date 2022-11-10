@@ -1,12 +1,5 @@
-#include "TTLCondTrig.h"
-#include "TTLCondTrigEditor.h"
-#include "TTLCondTrigIcons.h"
-#include "TTLCondTrigConstants.h"
-
 #define TRIGDEBUGPREFIX "[CondTrigEditor]  "
-#include "TTLCondTrigDebug.h"
-
-using namespace TTLConditionTrig;
+#include "TTLCondTrigIncludes.h"
 
 
 //

@@ -1,10 +1,4 @@
-#include "TTLCondTrig.h"
-#include "TTLCondTrigEditor.h"
-#include "TTLCondTrigConstants.h"
-#include "TTLCondTrigDebug.h"
-
-using namespace TTLConditionTrig;
-
+#include "TTLCondTrigIncludes.h"
 
 //
 // TTL conditional trigger logic plugin.
@@ -523,7 +517,7 @@ void TTLConditionalTrigger::rebuildMergeConfig(int outIdx)
 {
 T_PRINT("rebuildMergeConfig() called for output " << outIdx << ".");
 
-    outputMergers[outIdx].setMergeMode( needAllInputs[outIdx] ? ConditionMerger::mergeAnd : ConditionMerger::mergeOr );
+    outputMergers[outIdx].setMergeMode( needAllInputs[outIdx] ? LogicMerger::mergeAnd : LogicMerger::mergeOr );
 
     outputMergers[outIdx].clearInputList();
     int inMatrixPtr = outIdx * TTLCONDTRIG_INPUTS;

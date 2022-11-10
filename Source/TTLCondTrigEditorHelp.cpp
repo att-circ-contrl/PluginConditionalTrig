@@ -1,8 +1,4 @@
-#include "TTLCondTrig.h"
-#include "TTLCondTrigEditor.h"
-#include "TTLCondTrigConstants.h"
-
-using namespace TTLConditionTrig;
+#include "TTLCondTrigIncludes.h"
 
 
 //
