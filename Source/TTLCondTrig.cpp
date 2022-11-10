@@ -113,11 +113,12 @@ T_PRINT("createEventChannels() called.");
 // Processing loop.
 void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
 {
+    int64 thisTimeSamples = CoreServices::getGlobalTimestamp();
+
 // FIXME: Generate a test pattern.
 // This generates phantom input events, instead of using real events.
 #if TRIGDEBUG_WANTINPUTPATTERN
 {
-    int64 thisTimeSamples = CoreServices::getGlobalTimestamp();
     int64 sampRate = (int64) CoreServices::getGlobalSampleRate();
 
     // We want to sweep 16 inputs in 2 seconds. So, 1/8 sec. quantum.
@@ -130,15 +131,39 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     inIdx %= TTLCONDTRIG_INPUTS;
     int inMatrixIdx = inIdx + outIdx * TTLCONDTRIG_INPUTS;
 
-    inputConditions[inMatrixIdx].handleInput(thisTimeSamples, wantRaise);
+    if (isInputEnabled[inMatrixIdx])
+        inputConditions[inMatrixIdx].handleInput(thisTimeSamples, wantRaise);
 }
 #else
     // Process input events.
     checkForEvents();
 #endif
 
-    // Now that all of these have been processed, generate output events in temporal order.
+    // Merge input condition outputs and feed them to the output condition processors.
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputMergers[outIdx].processPendingInput();
+        while (outputMergers[outIdx].hasPendingOutput())
+        {
+            int64 thisTime = outputMergers[outIdx].getNextOutputTime();
+            bool thisLevel = outputMergers[outIdx].getNextOutputLevel();
+            outputMergers[outIdx].acknowledgeOutput();
+
+            if (isOutputEnabled[outIdx])
+                outputConditions[outIdx].handleInput(thisTime, thisLevel);
+        }
+    }
+
+    // Generate output events.
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        if (isOutputEnabled[outIdx])
+            while (outputConditions[outIdx].hasPendingOutput())
+            {
+                int64 thisTime = outputConditions[outIdx].getNextOutputTime();
+                bool thisLevel = outputConditions[outIdx].getNextOutputLevel();
+                outputConditions[outIdx].acknowledgeOutput();
 // FIXME - process() event generation NYI.
+            }
 
     // Propagate state updates to the GUI.
     pushRunningStateToDisplay();

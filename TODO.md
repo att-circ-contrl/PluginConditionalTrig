@@ -9,4 +9,6 @@ most recently recognized is active within a group of outputs).
 
 * Move icons to their own library.
 
+* Maybe make inputs disable themselves if input channel and bit aren't valid.
+
 _(This is the end of the file.)_

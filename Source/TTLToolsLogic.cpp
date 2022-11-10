@@ -5,6 +5,22 @@
 
 using namespace TTLTools;
 
+// Diagnostic tattle macros.
+
+// Tattle enable/disable switch.
+#define LOGICWANTDEBUG 1
+
+// Conditional code block.
+#if LOGICWANTDEBUG
+#define L_DEBUG(x) do { x } while(false);
+#else
+#define L_DEBUG(x) {}
+#endif
+
+// Debug tattle output.
+// Flushing should already happen with std::endl, but force it anyways.
+#define L_PRINT(x) L_DEBUG(std::cout << "[Logic]  " << x << std::endl << std::flush;)
+
 
 //
 // Configuration for processing conditions on one signal.
@@ -96,6 +112,9 @@ void LogicFIFO::resetInput(int64 resetTime, bool newInput)
 // Input processing. For the FIFO, input events are just copied to the output.
 void LogicFIFO::handleInput(int64 inputTime, bool inputLevel)
 {
+// FIXME - Diagnostics. Spammy!
+//L_PRINT("FIFO got input " << (inputLevel ? 1 : 0) << " at time " << inputTime << ".");
+
     // Update the "last input seen" record.
     resetInput(inputTime, inputLevel);
 
@@ -234,7 +253,12 @@ void ConditionProcessor::resetState()
 // Input processing. This schedules future output in response to input events.
 void ConditionProcessor::handleInput(int64 inputTime, bool inputLevel)
 {
+// FIXME - Diagnostics. Spammy!
+//L_PRINT("CondProc got input " << (inputLevel ? 1 : 0) << " at time " << inputTime << ".");
+
 // FIXME - handleInput NYI.
+// Just be a FIFO for testing purposes.
+enqueueOutput(inputTime, inputLevel);
 
     // Update the "last input seen" record.
     resetInput(inputTime, inputLevel);
@@ -300,7 +324,65 @@ void LogicMerger::resetState()
 
 void LogicMerger::processPendingInput()
 {
-// FIXME - processPendingInput() NYI.
+    int64 earliestTime;
+    bool hadInput;
+    bool thisOutput;
+
+    // Scan over all inputs, pick the oldest, and process it.
+    do
+    {
+        // Identify the oldest pending timestamp.
+        hadInput = false;
+        earliestTime = -1;
+        for (int inIdx = 0; inIdx < inputList.size(); inIdx++)
+            if (NULL != inputList[inIdx])
+                if (inputList[inIdx]->hasPendingOutput())
+                {
+                    int64 thisTime = inputList[inIdx]->getNextOutputTime();
+                    if ((!hadInput) || (thisTime < earliestTime))
+                        earliestTime = thisTime;
+                    hadInput = true;
+                }
+
+        if (hadInput)
+        {
+            // Acknowledge events that match the earliest timestamp.
+            // NOTE - Tolerate the case where a single source has several pending inputs with that timestamp.
+            for (int inIdx = 0; inIdx < inputList.size(); inIdx++)
+                if (NULL != inputList[inIdx])
+                {
+                    bool wasEarly = true;
+                    while ( wasEarly && (inputList[inIdx]->hasPendingOutput()) )
+                        if (inputList[inIdx]->getNextOutputTime() <= earliestTime)
+                            inputList[inIdx]->acknowledgeOutput();
+                        else
+                            wasEarly = false;
+                }
+
+            // Get the logical-AND or logical-OR of all acknowledged outputs.
+            thisOutput = (mergeMode == mergeAnd);
+            for (int inIdx = 0; inIdx < inputList.size(); inIdx++)
+                if (NULL != inputList[inIdx])
+                {
+                    bool thisLevel = inputList[inIdx]->getLastAcknowledgedOutput();
+                    switch (mergeMode)
+                    {
+                    case mergeAnd:
+                        thisOutput = thisOutput && thisLevel;
+                        break;
+                    case mergeOr:
+                        thisOutput = thisOutput || thisLevel;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+
+            // Emit this output.
+            enqueueOutput(earliestTime, thisOutput);
+        }
+    }
+    while (hadInput);
 }
 
 
