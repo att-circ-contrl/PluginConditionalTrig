@@ -53,4 +53,9 @@ Copies of this module can be daisy-chained to produce more complicated
 logical expressions (such as sum-of-products). This usually won't be
 necessary.
 
+This plugin requires the
+[TTLTools](https://github.com/att-circ-contrl/PluginLibTTLTools) library
+and the [RetroIcons](https://github.com/att-circ-contrl/PluginLibRetroIcons)
+library.
+
 _(This is the end of the file.)_
