@@ -439,7 +439,7 @@ void TTLConditionalTrigger::pushRunningStateToDisplay()
     int inMatrixPtr = 0;
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
-        outputState[outIdx] = outputConditions[outIdx].getLastAcknowledgedOutput();
+        outputState[outIdx] = outputConditions[outIdx].getLastAcknowledgedLevel();
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
@@ -450,8 +450,8 @@ void TTLConditionalTrigger::pushRunningStateToDisplay()
 
             if (isInputEnabled[inMatrixPtr])
             {
-                rawInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastInput();
-                cookedInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastAcknowledgedOutput();
+                rawInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastInputLevel();
+                cookedInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastAcknowledgedLevel();
             }
 
             inMatrixPtr++;
