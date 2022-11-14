@@ -105,5 +105,6 @@ endforeach()
 
 include(link_open_ephys_lib.cmake)
 link_open_ephys_lib(${PLUGIN_NAME} RetroIcons)
+link_open_ephys_lib(${PLUGIN_NAME} TTLTools)
 
 # This is the end of the file.
