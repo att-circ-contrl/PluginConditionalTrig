@@ -49,6 +49,12 @@ T_PRINT("Constructor called.");
     // This should already be at a reasonable state, but do it anyways.
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
         rebuildMergeConfig(outIdx);
+
+    // Set up the output serializer.
+    // This always feeds from all channels even if they aren't all enabled.
+    outputSerializer.clearInputList();
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        outputSerializer.addInput(&(outputConditions[outIdx]), outIdx);
 }
 
 
@@ -155,15 +161,31 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     }
 
     // Generate output events.
-    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
-        if (isOutputEnabled[outIdx])
-            while (outputConditions[outIdx].hasPendingOutput())
+    // We have to serialize them so that they're properly time-ordered.
+
+    outputSerializer.processPendingInput();
+    while (outputSerializer.hasPendingOutput())
+    {
+        int64 thisTime = outputSerializer.getNextOutputTime();
+        bool thisLevel = outputSerializer.getNextOutputLevel();
+        int outIdx = outputSerializer.getNextOutputTag();
+        outputSerializer.acknowledgeOutput();
+
+        // NOTE - Sample number is relative to the start of the buffer fragment in this polling interval.
+        // FIXME - Keeping sample number as zero!
+        int thisSampleNum = 0;
+
+        if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
+            if (isOutputEnabled[outIdx] && (NULL != outputEventChan))
             {
-                int64 thisTime = outputConditions[outIdx].getNextOutputTime();
-                bool thisLevel = outputConditions[outIdx].getNextOutputLevel();
-                outputConditions[outIdx].acknowledgeOutput();
-// FIXME - process() event generation NYI.
+                // FIXME - Blithely assume no more than 16 outputs.
+                uint16 dataValue = (thisLevel ? 1 : 0);
+                dataValue <<= outIdx;
+
+                TTLEventPtr thisEv = TTLEvent::createTTLEvent(outputEventChan, thisTime, &dataValue, sizeof(dataValue), outIdx);
+                addEvent(outputEventChan, thisEv, thisSampleNum);
             }
+    }
 
     // Propagate state updates to the GUI.
     pushRunningStateToDisplay();

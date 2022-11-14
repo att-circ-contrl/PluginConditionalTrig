@@ -66,6 +66,7 @@ namespace TTLConditionTrig
 		TTLTools::ConditionProcessor inputConditions[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
 		TTLTools::LogicMerger outputMergers[TTLCONDTRIG_OUTPUTS];
 		TTLTools::ConditionProcessor outputConditions[TTLCONDTRIG_OUTPUTS];
+		TTLTools::MuxMerger outputSerializer;
 
 		// Additional input configuration.
 		bool isInputEnabled[TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS];
