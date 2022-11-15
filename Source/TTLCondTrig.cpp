@@ -145,6 +145,11 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     checkForEvents();
 #endif
 
+    // Advance input condition processing to the present time.
+    for (int inMatrixIdx = 0; inMatrixIdx < (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS); inMatrixIdx++)
+        if (isInputEnabled[inMatrixIdx])
+            inputConditions[inMatrixIdx].advanceToTime(thisTimeSamples);
+
     // Merge input condition outputs and feed them to the output condition processors.
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
@@ -159,6 +164,12 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
                 outputConditions[outIdx].handleInput(thisTime, thisLevel);
         }
     }
+
+    // Advance output condition processing to the present time.
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        if (isOutputEnabled[outIdx])
+            outputConditions[outIdx].advanceToTime(thisTimeSamples);
+
 
     // Generate output events.
     // We have to serialize them so that they're properly time-ordered.
