@@ -3,8 +3,7 @@
 
 #include <EditorHeaders.h>
 
-#include "TTLToolsCircBuf.h"
-#include "TTLToolsLogic.h"
+#include "TTLTools.h"
 
 namespace TTLConditionTrig
 {

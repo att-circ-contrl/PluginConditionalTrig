@@ -3,8 +3,7 @@
 
 #include <ProcessorHeaders.h>
 
-#include "TTLToolsCircBuf.h"
-#include "TTLToolsLogic.h"
+#include "TTLTools.h"
 
 
 // Magic constants for data geometry.
