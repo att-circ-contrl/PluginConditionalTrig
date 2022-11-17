@@ -138,7 +138,11 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     int inMatrixIdx = inIdx + outIdx * TTLCONDTRIG_INPUTS;
 
     if (isInputEnabled[inMatrixIdx])
+    {
+// FIXME - Diagnostics.
+T_PRINT("Test pattern on input " << inMatrixIdx << " (" << "Out " << outIdx << " : In " << inIdx << ") set " << (wantRaise ? "high" : "low") << ".");
         inputConditions[inMatrixIdx].handleInput(thisTimeSamples, wantRaise);
+    }
 }
 #else
     // Process input events.
@@ -148,7 +152,11 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     // Advance input condition processing to the present time.
     for (int inMatrixIdx = 0; inMatrixIdx < (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS); inMatrixIdx++)
         if (isInputEnabled[inMatrixIdx])
+        {
+// FIXME - Diagnostics. Spammy!
+T_PRINT("Advancing input condition " << inMatrixIdx << ".");
             inputConditions[inMatrixIdx].advanceToTime(thisTimeSamples);
+        }
 
     // Merge input condition outputs and feed them to the output condition processors.
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
@@ -161,14 +169,22 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
             outputMergers[outIdx].acknowledgeOutput();
 
             if (isOutputEnabled[outIdx])
+            {
+// FIXME - Diagnostics. Spammy!
+T_PRINT("Feeding output condition " << outIdx << ".");
                 outputConditions[outIdx].handleInput(thisTime, thisLevel);
+            }
         }
     }
 
     // Advance output condition processing to the present time.
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
         if (isOutputEnabled[outIdx])
+        {
+// FIXME - Diagnostics. Spammy!
+T_PRINT("Advancing output condition " << outIdx << ".");
             outputConditions[outIdx].advanceToTime(thisTimeSamples);
+        }
 
 
     // Generate output events.

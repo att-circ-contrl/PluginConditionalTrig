@@ -7,7 +7,4 @@ most recently recognized is active within a group of outputs).
 
 * Maybe make inputs disable themselves if input channel and bit aren't valid.
 
-* Respond to clicking output labels the same way as clicking output tab
-buttons.
-
 _(This is the end of the file.)_

@@ -32,6 +32,10 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     // Disabling this greys it out. Instead let it get clicks and ignore them.
 //    outputNameLabel->setEnabled(false);
 
+    // We want the label to intercept clicks (for tabbing).
+    outputNameLabel->setInterceptsMouseClicks(true, false);
+    outputNameLabel->addMouseListener(this, false);
+
     // Settings button.
     settingsImage = new Wrench16Image(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
     settingsButton = new ImageButton;
@@ -62,6 +66,12 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     addAndMakeVisible(lampOffComponent);
     lampOffComponent->setEnabled(false);
 
+    // We want the lamps to intercept clicks (for tabbing).
+    lampOnComponent->setInterceptsMouseClicks(true, false);
+    lampOnComponent->addMouseListener(this, false);
+    lampOffComponent->setInterceptsMouseClicks(true, false);
+    lampOffComponent->addMouseListener(this, false);
+
     // Tab button.
     tabButton = new ColorButton("", Font("Small Text", 13, Font::plain));
     tabButton->setColors(juce::Colours::black, COLOUR_BOGUS);
@@ -80,12 +90,26 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
 // This is the settings button, the enable button, or the output selection tab.
 void TTLConditionalTriggerEditorOutputRow::buttonClicked(Button *theButton)
 {
-    if (theButton == tabButton)
-        parent->clickedOutputTab(outIdx);
-    else if (theButton == settingsButton)
+    // For all buttons, treat this as an output tab selection.
+    parent->clickedOutputTab(outIdx);
+
+    // Other buttons have additional functionality (tabButton is already handled).
+    if (theButton == settingsButton)
         parent->clickedOutputSettings(outIdx);
     else
         parent->clickedOutputEnableToggle(outIdx);
+}
+
+
+// Generic component click callback.
+// This lets us intercept clicks on the name label and lamp icon, for tabbing.
+void TTLConditionalTriggerEditorOutputRow::mouseDown(const MouseEvent& thisEvent)
+{
+    // Anything set up to explicitly intercept mouse clicks should be equivalent to a tab click.
+    // NOTE - Clicks on the row itself (missing components) will probably also be intercepted.
+    parent->clickedOutputTab(outIdx);
+
+    // To check individual source objects, test against "thisEvent.eventComponent".
 }
 
 

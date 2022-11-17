@@ -92,6 +92,7 @@ namespace TTLConditionTrig
 		TTLConditionalTriggerEditorOutputRow(TTLConditionalTriggerEditor *newParent, int newOutIdx);
 
 		void buttonClicked(Button* theButton);
+		void mouseDown(const MouseEvent& e);
 
 		void paint(Graphics& g);
 
