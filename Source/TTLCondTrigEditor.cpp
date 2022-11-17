@@ -431,6 +431,7 @@ T_PRINT("Got inIdx " << (isInput ? "*" : "") << inIdx << ", outIdx " << (isInput
     // Pull logic configuration changes and push them to the plugin (the plugin owns them).
 
     ConditionConfig thisConfig = configPanel->getConfig();
+    thisConfig.forceSanity();
 
     if (isInput)
     {

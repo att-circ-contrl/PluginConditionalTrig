@@ -272,8 +272,11 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
 void TTLConditionalTriggerEditorConfigPanel::buttonClicked(Button* theButton)
 {
     if (theButton == doneButton)
+    {
         // The parent pulls configuration state here, and forwards it to the plugin.
+        thisConfig.forceSanity();
         parent->clickedConditionExit();
+    }
     else if (theButton == enableButton)
     {
         thisEnabled = !thisEnabled;
@@ -390,6 +393,7 @@ T_PRINT("setEditingState() called for config " << newOutIdx << ":" << newInIdx <
     outIdx = newOutIdx;
 
     thisConfig = newConfig;
+    thisConfig.forceSanity();
 
     thisEnabled = newEnabled;
     inputChanIdx = newChanIdx;

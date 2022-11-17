@@ -319,6 +319,7 @@ T_PRINT("###  Indices out of range! Bailing out.");
     }
 
 
+    thisConfig.forceSanity();
     if (isInput)
         inputConditions[matrixIdx].setConfig(thisConfig);
     else if (isOutput)
