@@ -153,7 +153,7 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     // Merge input condition outputs and feed them to the output condition processors.
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
-        outputMergers[outIdx].processPendingInput();
+        outputMergers[outIdx].processPendingInputUntil(thisTimeSamples);
         while (outputMergers[outIdx].hasPendingOutput())
         {
             int64 thisTime = outputMergers[outIdx].getNextOutputTime();
@@ -174,7 +174,7 @@ void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
     // Generate output events.
     // We have to serialize them so that they're properly time-ordered.
 
-    outputSerializer.processPendingInput();
+    outputSerializer.processPendingInputUntil(thisTimeSamples);
     while (outputSerializer.hasPendingOutput())
     {
         int64 thisTime = outputSerializer.getNextOutputTime();
