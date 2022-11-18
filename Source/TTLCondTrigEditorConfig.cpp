@@ -298,8 +298,12 @@ void TTLConditionalTriggerEditorConfigPanel::labelTextChanged(Label* theLabel)
     std::string thisText = thisTextJuce.toStdString();
     bool isOutput = (inIdx < 0);
 
-    // Parse the label argument as an integer. This should return 0 for invalid input.
-    int64 thisMilliseconds = std::stol(thisText);
+    // Parse the label argument as an integer. Tolerate invalid input.
+    int64 thisMilliseconds = 0;
+    try
+    { thisMilliseconds = std::stol(thisText); }
+    catch (...)
+    { thisMilliseconds = 0; }
     // Convert this into a duration in samples.
     int64 thisSampCount = (int64) CoreServices::getGlobalSampleRate();
     thisSampCount = (thisSampCount * thisMilliseconds) / 1000;
