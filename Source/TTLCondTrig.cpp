@@ -154,7 +154,7 @@ T_PRINT("Test pattern on input " << inMatrixIdx << " (" << "Out " << outIdx << "
         if (isInputEnabled[inMatrixIdx])
         {
 // FIXME - Diagnostics. Spammy!
-T_PRINT("Advancing input condition " << inMatrixIdx << ".");
+//T_PRINT("Advancing input condition " << inMatrixIdx << ".");
             inputConditions[inMatrixIdx].advanceToTime(thisTimeSamples);
         }
 
@@ -175,7 +175,7 @@ T_PRINT("Advancing input condition " << inMatrixIdx << ".");
         if (isOutputEnabled[outIdx])
         {
 // FIXME - Diagnostics. Spammy!
-T_PRINT("Advancing output condition " << outIdx << ".");
+//T_PRINT("Advancing output condition " << outIdx << ".");
             outputConditions[outIdx].advanceToTime(thisTimeSamples);
         }
 
@@ -579,7 +579,7 @@ ConditionConfig TTLConditionalTrigger::loadLogicFromXml(XmlElement* theTag)
         theConfig.sustainSamps = theTag->getIntAttribute("SustainTime");
 
     if (theTag->hasAttribute("DeadTime"))
-        theConfig.deadTimeSamps = theTag->getIntAttribute("SustainTime");
+        theConfig.deadTimeSamps = theTag->getIntAttribute("DeadTime");
 
     if (theTag->hasAttribute("DeglitchTime"))
         theConfig.deglitchSamps = theTag->getIntAttribute("DeglitchTime");
