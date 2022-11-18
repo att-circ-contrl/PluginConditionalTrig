@@ -162,19 +162,12 @@ T_PRINT("Advancing input condition " << inMatrixIdx << ".");
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputMergers[outIdx].processPendingInputUntil(thisTimeSamples);
-        while (outputMergers[outIdx].hasPendingOutput())
-        {
-            int64 thisTime = outputMergers[outIdx].getNextOutputTime();
-            bool thisLevel = outputMergers[outIdx].getNextOutputLevel();
-            outputMergers[outIdx].acknowledgeOutput();
 
-            if (isOutputEnabled[outIdx])
-            {
-// FIXME - Diagnostics. Spammy!
-T_PRINT("Feeding output condition " << outIdx << ".");
-                outputConditions[outIdx].handleInput(thisTime, thisLevel);
-            }
-        }
+        // Always drain the mergers, whether or not we're using the output.
+        if (isOutputEnabled[outIdx])
+            outputConditions[outIdx].pullFromFIFOUntil(&(outputMergers[outIdx]), thisTimeSamples);
+        else
+            outputMergers[outIdx].drainOutputUntil(thisTimeSamples);
     }
 
     // Advance output condition processing to the present time.
@@ -199,7 +192,7 @@ T_PRINT("Advancing output condition " << outIdx << ".");
         outputSerializer.acknowledgeOutput();
 
         // NOTE - Sample number is relative to the start of the buffer fragment in this polling interval.
-        // FIXME - Keeping sample number as zero!
+        // FIXME - Keeping sample number as zero! This will introduce jitter!
         int thisSampleNum = 0;
 
         if ((outIdx >= 0) && (outIdx < TTLCONDTRIG_OUTPUTS))
@@ -222,7 +215,20 @@ T_PRINT("Advancing output condition " << outIdx << ".");
 // TTL event handling.
 void TTLConditionalTrigger::handleEvent(const EventChannel *eventInfo, const MidiMessage& event, int samplePosition)
 {
-// FIXME - handleEvent() NYI.
+    // Brute force and ignorance: Check _all_ TTL events against _all_ inputs' sources.
+    if (Event::getEventType(event) == EventChannel::TTL)
+    {
+        TTLEventPtr thisEvent = TTLEvent::deserializeFromMessage(event, eventInfo);
+
+        int64 thisTime = thisEvent->getTimestamp();
+        bool thisLevel = thisEvent->getState();
+        int thisBit = thisEvent->getChannel();
+        int thisChan = getEventChannelIndex(thisEvent);
+
+        for (int inMatrixIdx = 0; inMatrixIdx < (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS); inMatrixIdx++)
+            if ( isInputEnabled[inMatrixIdx] && (thisChan == inputChanIdx[inMatrixIdx]) && (thisBit == inputBitIdx[inMatrixIdx]) )
+                inputConditions[inMatrixIdx].handleInput(thisTime, thisLevel);
+    }
 }
 
 

@@ -8,7 +8,7 @@
 #define TRIGWANTDEBUG 1
 
 // Input override switch. This generates a test pattern on the inputs.
-#define TRIGDEBUG_WANTINPUTPATTERN 1
+#define TRIGDEBUG_WANTINPUTPATTERN 0
 
 
 // Report prefix string. This defaults to "[CondTrig]  ".
