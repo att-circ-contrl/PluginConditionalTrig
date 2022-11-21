@@ -33,6 +33,9 @@ namespace TTLConditionTrig
 		// We create outputs here.
 		void createEventChannels() override;
 
+		// Hook indicating acquisition is about to start.
+		bool enable() override;
+
 		// Processing loop.
 		void process(AudioSampleBuffer& buffer) override;
 
@@ -75,6 +78,10 @@ namespace TTLConditionTrig
 		// Additional output configuration.
 		bool isOutputEnabled[TTLCONDTRIG_OUTPUTS];
 		bool needAllInputs[TTLCONDTRIG_OUTPUTS];
+
+		// Initialization state.
+		bool initHappened;
+		bool enableHappened;
 
 		// NOTE - The editor is responsible for labels. We don't cache them.
 

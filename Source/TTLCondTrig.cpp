@@ -24,8 +24,8 @@ T_PRINT("Constructor called.");
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
         outputConditions[outIdx].setConfig(dummyConfig);
-        outputConditions[outIdx].resetInput(-1, false);
-        outputConditions[outIdx].resetState();
+        outputConditions[outIdx].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
+        outputConditions[outIdx].clearBuffer();
 
         isOutputEnabled[outIdx] = false;
         needAllInputs[outIdx] = true;
@@ -33,8 +33,8 @@ T_PRINT("Constructor called.");
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
             inputConditions[inMatrixPtr].setConfig(dummyConfig);
-            inputConditions[inMatrixPtr].resetInput(0, false);
-            inputConditions[inMatrixPtr].resetState();
+            inputConditions[inMatrixPtr].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
+            inputConditions[inMatrixPtr].clearBuffer();
 
             isInputEnabled[inMatrixPtr] = false;
             inputChanIdx[inMatrixPtr] = TTLCONDTRIG_CHANIDX_NONE;
@@ -55,6 +55,10 @@ T_PRINT("Constructor called.");
     outputSerializer.clearInputList();
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
         outputSerializer.addInput(&(outputConditions[outIdx]), outIdx);
+
+    // Make note of the initialization state.
+    initHappened = true;
+    enableHappened = false;
 }
 
 
@@ -116,10 +120,67 @@ T_PRINT("createEventChannels() called.");
 }
 
 
+// Hook indicating acquisition is about to start.
+bool TTLConditionalTrigger::enable()
+{
+    // The global timestamp is about to be reset, but hasn't been yet. This will cause input timestamps to be out of order.
+    // Deal with it by force-resetting all processing state.
+
+    // NOTE - Preserve the last input _level_ seen but not the last input _time_, for inputs.
+    for (int inMatrixIdx = 0; inMatrixIdx < (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS); inMatrixIdx++)
+    {
+        bool prevLevel = inputConditions[inMatrixIdx].getLastInputLevel();
+        inputConditions[inMatrixIdx].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, prevLevel);
+        inputConditions[inMatrixIdx].clearBuffer();
+        inputConditions[inMatrixIdx].resetTrigger();
+    }
+
+    for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+    {
+        outputMergers[outIdx].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
+        outputMergers[outIdx].clearBuffer();
+
+        bool prevLevel = outputConditions[outIdx].getLastInputLevel();
+        outputConditions[outIdx].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, prevLevel);
+        outputConditions[outIdx].clearBuffer();
+        outputConditions[outIdx].resetTrigger();
+    }
+
+    outputSerializer.setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
+    outputSerializer.clearBuffer();
+
+    enableHappened = true;
+
+    return true;
+}
+
+
 // Processing loop.
 void TTLConditionalTrigger::process(AudioSampleBuffer& buffer)
 {
     int64 thisTimeSamples = CoreServices::getGlobalTimestamp();
+
+    // If we just blanked the processing state but _did_ have previous input state, remind the input (and output) conditions what state they most recently had.
+    // Among other things, this kicks level-triggered conditions into activity.
+    if (enableHappened && (!initHappened))
+    {
+        for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
+        {
+            bool prevLevel = outputConditions[outIdx].getLastInputLevel();
+            outputConditions[outIdx].handleInput(thisTimeSamples, prevLevel);
+        }
+
+        for (int inMatrixIdx = 0; inMatrixIdx < (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS); inMatrixIdx++)
+        {
+            bool prevLevel = inputConditions[inMatrixIdx].getLastInputLevel();
+            inputConditions[inMatrixIdx].handleInput(thisTimeSamples, prevLevel);
+        }
+    }
+
+    // We've finished dealing with initialization.
+    initHappened = false;
+    enableHappened = false;
+
 
 // FIXME: Generate a test pattern.
 // This generates phantom input events, instead of using real events.
@@ -228,7 +289,11 @@ void TTLConditionalTrigger::handleEvent(const EventChannel *eventInfo, const Mid
 
         for (int inMatrixIdx = 0; inMatrixIdx < (TTLCONDTRIG_INPUTS * TTLCONDTRIG_OUTPUTS); inMatrixIdx++)
             if ( isInputEnabled[inMatrixIdx] && (thisChan == inputChanIdx[inMatrixIdx]) && (thisBit == inputBitIdx[inMatrixIdx]) )
+            {
+// FIXME - Diagnostics.
+T_PRINT("Input " << inMatrixIdx << (thisLevel ? " high at " : " low at ") << thisTime << ".");
                 inputConditions[inMatrixIdx].handleInput(thisTime, thisLevel);
+            }
     }
 }
 
@@ -607,7 +672,7 @@ T_PRINT("rebuildMergeConfig() called for output " << outIdx << ".");
         if (isInputEnabled[inMatrixPtr + inIdx])
             outputMergers[outIdx].addInput( &(inputConditions[inMatrixPtr + inIdx]) );
 
-    outputMergers[outIdx].resetState();
+    outputMergers[outIdx].clearBuffer();
 }
 
 

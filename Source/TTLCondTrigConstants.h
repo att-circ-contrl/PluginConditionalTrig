@@ -2,11 +2,14 @@
 #define TTLCONDTRIGCONSTANTS_H_DEFINED
 
 
-// Magic constants for logic.
+// Magic constants for logic config.
 #define TTLCONDTRIG_CHANIDX_NONE (-1)
 #define TTLCONDTRIG_BITIDX_NONE (-1)
 // JUCE hates user-supplied ID values of 0, so shift combobox option ID values up a bit.
 #define TTLCONDTRIG_COMBOBOX_OFFSET 10
+
+// Magic constants for logic processing.
+#define TTLCONDTRIG_TIMESTAMP_BOGUS (-1)
 
 
 // Magic constants for parameter indices.
