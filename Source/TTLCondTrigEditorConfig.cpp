@@ -59,8 +59,8 @@ TTLConditionalTriggerEditorConfigPanel::TTLConditionalTriggerEditorConfigPanel(T
 
     // Feature/enable/source row.
 
-    connectOnImage = new Connected16Image(CONN_BACKGROUND, CONN_FOREGROUND);
-    connectOffImage = new Disconnected16Image(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
+    connectOnImage = BuildIcon16_Connected(CONN_BACKGROUND, CONN_FOREGROUND);
+    connectOffImage = BuildIcon16_Disconnected(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
 
     xpos = TTLCONDTRIG_XGAP;
     ypos += TTLCONDTRIG_YSIZE + TTLCONDTRIG_YGAP;

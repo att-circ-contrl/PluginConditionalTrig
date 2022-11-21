@@ -14,8 +14,8 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     outIdx = newOutIdx;
 
     // Enable button.
-    connectOnImage = new Connected16Image(CONN_BACKGROUND, CONN_FOREGROUND);
-    connectOffImage = new Disconnected16Image(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
+    connectOnImage = BuildIcon16_Connected(CONN_BACKGROUND, CONN_FOREGROUND);
+    connectOffImage = BuildIcon16_Disconnected(DISCONN_BACKGROUND, DISCONN_FOREGROUND);
     enableButton = new ImageButton;
     // Images are normal, hover-over, and pressed.
     // Tuples are image, image opacity, and overlay colour.
@@ -37,7 +37,7 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     outputNameLabel->addMouseListener(this, false);
 
     // Settings button.
-    settingsImage = new Wrench16Image(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
+    settingsImage = BuildIcon16_Wrench(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
     settingsButton = new ImageButton;
     // Images are normal, hover-over, and pressed.
     // Tuples are image, image opacity, and overlay colour.
@@ -49,7 +49,7 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     // Indicator lamp icon.
     // It's less expensive to have two images and make only one visible than it is to change the image on one component.
 
-    lampOnImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
+    lampOnImage = BuildIcon16_IndicatorLamp(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
     lampOnComponent = new ImageComponent();
     lampOnComponent->setImage(*lampOnImage);
 
@@ -58,7 +58,7 @@ TTLConditionalTriggerEditorOutputRow::TTLConditionalTriggerEditorOutputRow(TTLCo
     lampOnComponent->setEnabled(false);
     lampOnComponent->setVisible(false);
 
-    lampOffImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+    lampOffImage = BuildIcon16_IndicatorLamp(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
     lampOffComponent = new ImageComponent();
     lampOffComponent->setImage(*lampOffImage);
 

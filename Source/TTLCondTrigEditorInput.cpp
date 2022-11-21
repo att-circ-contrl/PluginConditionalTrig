@@ -15,9 +15,9 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
     textInputName = "undefined";
 
     // Indicator lamp images.
-    lampGreenImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
-    lampAmberImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_AMBER_FILL, LAMP_AMBER_HIGHLIGHT);
-    lampOffImage = new IndicatorLamp16Image(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
+    lampGreenImage = BuildIcon16_IndicatorLamp(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_GREEN_FILL, LAMP_GREEN_HIGHLIGHT);
+    lampAmberImage = BuildIcon16_IndicatorLamp(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_AMBER_FILL, LAMP_AMBER_HIGHLIGHT);
+    lampOffImage = BuildIcon16_IndicatorLamp(LAMP_BACKGROUND, LAMP_OUTLINE, LAMP_OFF_FILL, LAMP_OFF_HIGHLIGHT);
 
     // Raw input indicator lamp icon.
     // It's less expensive to have two images and make only one visible than it is to change the image on one component.
@@ -45,7 +45,7 @@ TTLConditionalTriggerEditorInputRow::TTLConditionalTriggerEditorInputRow(TTLCond
 //    inputNameLabel->setEnabled(false);
 
     // Settings button.
-    settingsImage = new Wrench16Image(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
+    settingsImage = BuildIcon16_Wrench(WRENCH_BACKGROUND, WRENCH_FOREGROUND);
     settingsButton = new ImageButton;
     // Images are normal, hover-over, and pressed.
     // Tuples are image, image opacity, and overlay colour.
