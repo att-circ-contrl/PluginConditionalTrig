@@ -26,6 +26,7 @@ T_PRINT("Constructor called.");
         outputConditions[outIdx].setConfig(dummyConfig);
         outputConditions[outIdx].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
         outputConditions[outIdx].clearBuffer();
+        outputConditions[outIdx].setDebugID(TRIGDEBUG_OUTPUT_ID_OFFSET + outIdx);
 
         isOutputEnabled[outIdx] = false;
         needAllInputs[outIdx] = true;
@@ -35,6 +36,7 @@ T_PRINT("Constructor called.");
             inputConditions[inMatrixPtr].setConfig(dummyConfig);
             inputConditions[inMatrixPtr].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
             inputConditions[inMatrixPtr].clearBuffer();
+            inputConditions[inMatrixPtr].setDebugID(inIdx + TRIGDEBUG_INPUT_ID_STRIDE * outIdx);
 
             isInputEnabled[inMatrixPtr] = false;
             inputChanIdx[inMatrixPtr] = TTLCONDTRIG_CHANIDX_NONE;

@@ -11,6 +11,12 @@
 #define TRIGDEBUG_WANTINPUTPATTERN 0
 
 
+// Reporting ID stride for input banks, for readability.
+#define TRIGDEBUG_INPUT_ID_STRIDE 10
+// Reporting ID offset for output banks, for readability.
+#define TRIGDEBUG_OUTPUT_ID_OFFSET 100
+
+
 // Report prefix string. This defaults to "[CondTrig]  ".
 #ifndef TRIGDEBUGPREFIX
 #define TRIGDEBUGPREFIX "[CondTrig]  "
