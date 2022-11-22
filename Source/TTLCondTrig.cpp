@@ -139,6 +139,7 @@ bool TTLConditionalTrigger::enable()
     {
         outputMergers[outIdx].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
         outputMergers[outIdx].clearBuffer();
+        outputMergers[outIdx].clearMergeState();
 
         bool prevLevel = outputConditions[outIdx].getLastInputLevel();
         outputConditions[outIdx].setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, prevLevel);
@@ -148,6 +149,7 @@ bool TTLConditionalTrigger::enable()
 
     outputSerializer.setPrevInput(TTLCONDTRIG_TIMESTAMP_BOGUS, false);
     outputSerializer.clearBuffer();
+    outputSerializer.clearMergeState();
 
     enableHappened = true;
 
@@ -561,12 +563,16 @@ void TTLConditionalTrigger::pushRunningStateToDisplay()
     int inMatrixPtr = 0;
     for (int outIdx = 0; outIdx < TTLCONDTRIG_OUTPUTS; outIdx++)
     {
-        outputState[outIdx] = outputConditions[outIdx].getLastAcknowledgedLevel();
+        // FIXME - A configured but disabled output should show low if it's active-high and high if it's active-low, but we can't easily test if an output was ever configured.
+        outputState[outIdx] = false;
+        if (isOutputEnabled[outIdx])
+            outputState[outIdx] = outputConditions[outIdx].getLastAcknowledgedLevel();
+// FIXME - Spammy diagnostics.
+//T_PRINT("Output " << outIdx << (outputState[outIdx] ? " is high." : " is low.") << (isOutputEnabled[outIdx] ? "" : " (disabled)"));
 
         for (int inIdx = 0; inIdx < TTLCONDTRIG_INPUTS; inIdx++)
         {
-            // NOTE - These are unconfigured defaults (no channel, active-high).
-            // FIXME - A configured but disabled input _should_ show the input TTL value and, if active-_low_, a high output. But we can't easily test whether an input was ever configured.
+            // FIXME - A configured but disabled input should show low if it's active-high and high if it's active-low, but we can't easily test if an input was ever configured.
             rawInputs[inMatrixPtr] = false;
             cookedInputs[inMatrixPtr] = false;
 
@@ -575,6 +581,8 @@ void TTLConditionalTrigger::pushRunningStateToDisplay()
                 rawInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastInputLevel();
                 cookedInputs[inMatrixPtr] = inputConditions[inMatrixPtr].getLastAcknowledgedLevel();
             }
+// FIXME - Spammy diagnostics.
+//T_PRINT("Input " << inMatrixPtr << (rawInputs[inMatrixPtr] ? " is high" : " is low") << (cookedInputs[inMatrixPtr] ? ":high." : ":low.") << (isInputEnabled[inMatrixPtr] ? "" : " (disabled)"));
 
             inMatrixPtr++;
         }
