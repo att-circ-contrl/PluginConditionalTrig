@@ -5,7 +5,7 @@
 
 
 // Enable/disable switch.
-#define TRIGWANTDEBUG 1
+#define TRIGWANTDEBUG 0
 
 // Input override switch. This generates a test pattern on the inputs.
 #define TRIGDEBUG_WANTINPUTPATTERN 0

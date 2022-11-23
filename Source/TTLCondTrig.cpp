@@ -229,10 +229,9 @@ T_PRINT("Test pattern on input " << inMatrixIdx << " (" << "Out " << outIdx << "
         outputMergers[outIdx].processPendingInputUntil(thisTimeSamples);
 
         // Always drain the mergers, whether or not we're using the output.
-// FIXME - Disable output for testing.
-//        if (isOutputEnabled[outIdx])
-//            outputConditions[outIdx].pullFromFIFOUntil(&(outputMergers[outIdx]), thisTimeSamples);
-//        else
+        if (isOutputEnabled[outIdx])
+            outputConditions[outIdx].pullFromFIFOUntil(&(outputMergers[outIdx]), thisTimeSamples);
+        else
             outputMergers[outIdx].drainOutputUntil(thisTimeSamples);
     }
 
