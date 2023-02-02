@@ -7,6 +7,7 @@
 #include "TTLCondTrigConstants.h"
 #include "TTLCondTrigDebug.h"
 #include "RetroIcons.h"
+#include <string>
 
 using namespace TTLTools;
 using namespace RetroIcons;
