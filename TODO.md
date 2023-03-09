@@ -15,4 +15,7 @@ where the condition is active-high but looking for low input or if both of
 these occur. TLDR, at least one input update should occur before outputs
 are considered valid.
 
+* Display bug: When the plugin interface is minimized and then expanded
+again, it doesn't repaint properly.
+
 _(This is the end of the file.)_
